@@ -634,38 +634,7 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 	return scrolled_window;
 }
 
-#ifdef USE_GTK2
-static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
-				    gint spacing, GtkListStore *store)
-{
-	GtkWidget *scrolled_window;
-	GtkWidget *list;
-	GtkCellRenderer *renderer;
-	GtkTreeViewColumn *column;
-	GtkTreeSelection* selection;
 
-	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize,
-		list_size, spacing);
-	list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
-
-	renderer = gtk_cell_renderer_text_new();
-	column = gtk_tree_view_column_new_with_attributes("", renderer, "text",
-		0, NULL);
-
-	gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
-
-	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
-	/* TODO: This seems to screw things up. At the moment it is not important
-	   to have multiple selections */
-	/* gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE); */
-
-	gtk_widget_show(list);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window),
-		list);
-
-	return list;
-}
-#else
 static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
 				    gint spacing)
 {
@@ -675,12 +644,14 @@ static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
 	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize, list_size, spacing);
 	list = gtk_list_new();
 	gtk_widget_show(list);
+#ifndef USE_GTK2
 	gtk_list_set_selection_mode(GTK_LIST(list), GTK_SELECTION_MULTIPLE);
+#endif
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), list);
 
 	return list;
 }
-#endif
+
 
 static GtkObject *set_horizontal_slider(GtkBox *box, gint deflt, gint min, gint max)
 {
@@ -1457,15 +1428,10 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	GtkWidget *button_add;
 	GtkWidget *button_remove;
 	GtkWidget *button_ok;
-#ifdef USE_GTK2
-	GtkListStore *tree_list1;
-	GtkListStore *tree_list2;
-	GtkTreeIter tree_iter;
-#else
+	GtkWidget *item;
+	
 	GList *glist1 = NULL;
 	GList *glist2 = NULL;
-	GtkWidget *item;
-#endif
 	GtkTooltips *tooltips = NULL;
 	gint i, n = 0;
 	int params = 3 + Xdialog.tips;
@@ -1474,16 +1440,9 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 		tooltips = gtk_tooltips_new();
 
 	Xdialog_array(list_size);
-
 	open_window();
-
 	set_backtitle(TRUE);
 	set_label(optarg, FALSE);
-
-#ifdef USE_GTK2
-	tree_list1 = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
-	tree_list2 = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
-#endif
 
 	/* Put all parameters into an array and calculate the max item width */
 	for (i = 0;  i < list_size; i++) {
@@ -1491,15 +1450,10 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 		strcpysafe(Xdialog.array[i].name, options[params*i+1], MAX_ITEM_LENGTH);
 		if (strlen(Xdialog.array[i].name) > n)
 			n = strlen(Xdialog.array[i].name);
-#ifdef USE_GTK2
-		gtk_list_store_append(tree_list1, &tree_iter);
-		gtk_list_store_set(tree_list1, &tree_iter, 0,
-			Xdialog.array[i].name, 1, Xdialog.array[i].tag, -1);
-		/* TODO: tooltips support in GTK2 */
-#else
 		item = gtk_list_item_new_with_label(Xdialog.array[i].name);
 		gtk_widget_show(item);
 		Xdialog.array[i].widget = item;
+
 		if (item_status(item, options[params*i+2], Xdialog.array[i].tag) == 1)
 			glist2 = g_list_append(glist2, item);
 		else
@@ -1507,7 +1461,6 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 
 		if (Xdialog.tips == 1 && strlen(options[params*i+3]) > 0)
 			gtk_tooltips_set_tip(tooltips, item, (gchar *) options[params*i+3], NULL);
-#endif
 	}
 
 	/* Setup a hbox to hold the scrolled windows and the Add/Remove buttons */
@@ -1516,12 +1469,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	gtk_box_pack_start(Xdialog.vbox, hbox, TRUE, TRUE, ymult/3);
 
 	/* Setup the first list into a scrolled window */
-#ifdef USE_GTK2
-	Xdialog.widget1 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list1);
-	g_object_unref(G_OBJECT(tree_list1));
-#else
 	Xdialog.widget1 = set_scrolled_list(hbox, MAX(15, n), list_size, 4);
-#endif
 
 	/* Setup the Add/Remove buttons */
 	vbuttonbox = gtk_vbutton_box_new();
@@ -1536,20 +1484,12 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 			   GTK_SIGNAL_FUNC(remove_from_list), NULL);
 
 	/* Setup the second list into a scrolled window */
-#ifdef USE_GTK2
-	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list2);
-	g_object_unref(G_OBJECT(tree_list2));
-#else
 	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4);
-#endif
 
 	button_ok = set_all_buttons(FALSE, TRUE);
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_list), NULL);
-
-#ifndef USE_GTK2
 	gtk_list_append_items(GTK_LIST(Xdialog.widget1), glist1);
 	gtk_list_append_items(GTK_LIST(Xdialog.widget2), glist2);
-#endif
 
 	sensitive_buttons();
 
@@ -1575,6 +1515,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	GtkCList *clist;
 	static gchar *null_row[] = {NULL, NULL};
 	gint rownum = 0;
+	gint n = 0; /* Dougal: use for max tag length */
 	gint first_selectable = -1;
 	int i;
 	int params = 2 + Xdialog.tips;
@@ -1614,6 +1555,8 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 			if ( first_selectable == -1 ) {
 				first_selectable = rownum;
 			}
+			if (strlen(Xdialog.array[i].tag) > n)
+			n = strlen(Xdialog.array[i].tag); /* Dougal:get max length for later */
 		}
 
 	/* FIX ME !
@@ -1640,7 +1583,11 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	}
 
 	gtk_clist_columns_autosize(clist);
-
+	/* Dougal: This is a crude workaround for what seems like a GTK bug -- */
+	/*  1st column is too narrow after autoresize */
+	if ( n > 0 )
+		gtk_clist_set_column_width (clist, 0, n*9.5);
+	
 	/* Select the first selectable row as default if no other row is selected */
 	if (Xdialog.array[0].state < 0) {
 		if ( first_selectable >= 0 ) {
@@ -1660,7 +1607,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 #else
 		gtk_clist_set_column_visibility(clist, 0, FALSE);
 #endif
-
+	
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget2);
 	gtk_widget_show(Xdialog.widget2);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget2), "select_row",
@@ -1975,9 +1922,14 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "delete_event",
 			   GTK_SIGNAL_FUNC(delete_event), NULL);
-	gtk_signal_connect(GTK_OBJECT(filesel->ok_button),
+	if (dsel_flag)
+		gtk_signal_connect(GTK_OBJECT(filesel->ok_button),
+			   "clicked", (GtkSignalFunc) dirsel_exit, filesel);
+	else
+		gtk_signal_connect(GTK_OBJECT(filesel->ok_button),
 			   "clicked", (GtkSignalFunc) filesel_exit, filesel);
-
+	
+	
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
 		gdk_beep();

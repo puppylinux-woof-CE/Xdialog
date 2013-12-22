@@ -1000,29 +1000,7 @@ void cb_selection_changed(GtkObject *tree)
 /* the following function is to be called after each glist update so to
  * set the proper (in)sensitive status onto the Add/Remove buttons.
  */
-#ifdef USE_GTK2
-void sensitive_buttons(void)
-{
-	GtkTreeIter tree_iter;
-	GtkTreeModel *model;
 
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
-
-	if (gtk_tree_model_get_iter_first(model, &tree_iter)) {
-		gtk_widget_set_sensitive(Xdialog.widget3, TRUE);
-	} else {
-		gtk_widget_set_sensitive(Xdialog.widget3, FALSE);
-	}
-
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
-
-	if (gtk_tree_model_get_iter_first(model, &tree_iter)) {
-		gtk_widget_set_sensitive(Xdialog.widget4, TRUE);
-	} else {
-		gtk_widget_set_sensitive(Xdialog.widget4, FALSE);
-	}
-}
-#else
 void sensitive_buttons(void)
 {
 	gtk_widget_set_sensitive(Xdialog.widget3,
@@ -1030,37 +1008,8 @@ void sensitive_buttons(void)
 	gtk_widget_set_sensitive(Xdialog.widget4,
 				 g_list_length(GTK_LIST(Xdialog.widget2)->children) != 0);
 }
-#endif
 
-#ifdef USE_GTK2
-gboolean add_to_list(GtkButton *button, gpointer data)
-{
-	GtkTreeIter tree_iter1, tree_iter2;
-	GtkTreeModel *model1, *model2;
-	GtkTreeSelection* selection1;
 
-	model1 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
-	selection1 = gtk_tree_view_get_selection(GTK_TREE_VIEW(Xdialog.widget1));
-	model2 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
-
-	if (gtk_tree_selection_get_selected(selection1, &model1, &tree_iter1)) {
-		gchar *name, *tag;
-		gtk_tree_model_get(model1, &tree_iter1, 0, &name, 1, &tag, -1);
-
-		gtk_list_store_append(GTK_LIST_STORE(model2), &tree_iter2);
-		gtk_list_store_set(GTK_LIST_STORE(model2), &tree_iter2, 0,
-			 name, 1, tag, -1);
-		gtk_list_store_remove(GTK_LIST_STORE(model1), &tree_iter1);
-
-		g_free(name);
-		g_free(tag);
-	}
-  
-	sensitive_buttons(); 
-
-	return TRUE;
-}
-#else
 gboolean add_to_list(GtkButton *button, gpointer data)
 {
 	GList *selected;
@@ -1073,36 +1022,8 @@ gboolean add_to_list(GtkButton *button, gpointer data)
 
 	return TRUE;
 }
-#endif
 
-#ifdef USE_GTK2
-gboolean remove_from_list(GtkButton *button, gpointer data)
-{
-	GtkTreeIter tree_iter1, tree_iter2;
-	GtkTreeModel *model1, *model2;
-	GtkTreeSelection* selection2;
 
-	model1 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
-	model2 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
-	selection2 = gtk_tree_view_get_selection(GTK_TREE_VIEW(Xdialog.widget2));
-
-	if (gtk_tree_selection_get_selected(selection2, &model2, &tree_iter2)) {
-		gchar *name, *tag;
-		gtk_tree_model_get(model2, &tree_iter2, 0, &name, 1, &tag, -1);
-
-		gtk_list_store_append(GTK_LIST_STORE(model1), &tree_iter1);
-		gtk_list_store_set(GTK_LIST_STORE(model1), &tree_iter1, 0, name, 1, tag, -1);
-		gtk_list_store_remove(GTK_LIST_STORE(model2), &tree_iter2);
-
-		g_free(name);
-		g_free(tag);
-	}
-
-	sensitive_buttons();
-
-	return TRUE;
-}
-#else
 gboolean remove_from_list(GtkButton *button, gpointer data)
 {
 	GList *selected;
@@ -1115,42 +1036,8 @@ gboolean remove_from_list(GtkButton *button, gpointer data)
 
 	return TRUE;
 }
-#endif
 
-#ifdef USE_GTK2
-gboolean print_list(GtkButton *button, gpointer data)
-{
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	gboolean valid;
-	gboolean flag = FALSE;
 
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
-	valid = gtk_tree_model_get_iter_first(model, &iter);
-
-	while (valid) {
-		gchar *name_data, *tag_data;
-
-		gtk_tree_model_get(model, &iter, 0, &name_data, 1, &tag_data, -1);
-
-		if (flag)
-			fprintf(Xdialog.output, "%s", Xdialog.separator);
-
-		fprintf(Xdialog.output, "%s", tag_data);
-		flag = TRUE;
-
-		g_free(name_data);
-		g_free(tag_data);
-
-		valid = gtk_tree_model_iter_next(model, &iter);
-	}
-
-	if (flag)
-		fprintf(Xdialog.output, "\n");
-
-	return TRUE;
-}
-#else
 gboolean print_list(GtkButton *button, gpointer data)
 {
 	GList *children;
@@ -1175,15 +1062,14 @@ gboolean print_list(GtkButton *button, gpointer data)
 
 	return TRUE;
 }
-#endif
+
 
 gboolean buildlist_timeout(gpointer data)
 {
 	return print_list(NULL, NULL);
 }
 
-/* fselect and dselect callback */
-
+/* fselect callback */
 gboolean filesel_exit(GtkObject *filesel, gpointer client_data)
 {
 	fprintf(Xdialog.output, "%s\n",
@@ -1191,8 +1077,24 @@ gboolean filesel_exit(GtkObject *filesel, gpointer client_data)
 	return exit_ok(NULL, NULL);
 }
 
-/* colorsel callback */
+/* dselect callback */
+#ifdef USE_GTK2
+gboolean dirsel_exit(GtkObject *filesel, gpointer client_data)
+{
+	fprintf(Xdialog.output, "%s/\n",
+		gtk_file_selection_get_filename(GTK_FILE_SELECTION(client_data)));
+	return exit_ok(NULL, NULL);
+}
+#else
+gboolean dirsel_exit(GtkObject *filesel, gpointer client_data)
+{
+	fprintf(Xdialog.output, "%s\n",
+		gtk_file_selection_get_filename(GTK_FILE_SELECTION(client_data)));
+	return exit_ok(NULL, NULL);
+}
+#endif
 
+/* colorsel callback */
 gboolean colorsel_exit(GtkObject *colorsel, gpointer client_data)
 {
 	gdouble colors[4];

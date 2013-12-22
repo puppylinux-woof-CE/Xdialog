@@ -94,6 +94,8 @@ gboolean buildlist_timeout(gpointer data);
 
 gboolean filesel_exit(GtkObject *filesel, gpointer client_data);
 
+gboolean dirsel_exit(GtkObject *filesel, gpointer client_data);
+
 gboolean colorsel_exit(GtkObject *colorsel, gpointer client_data);
 
 gboolean fontsel_exit(GtkObject *filesel, gpointer client_data);

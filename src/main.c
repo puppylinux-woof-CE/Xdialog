@@ -929,7 +929,7 @@ show_again:
 			case B_BUILDLIST:	/* a build list */
 				get_box_size(argc, argv, &optind);
 				list_size = get_list_size(argc, argv, &optind,
-							  3 + Xdialog.tips, TRUE);
+							  3+Xdialog.tips, TRUE);
 				create_buildlist(optarg, argv+optind, list_size);
 				optind += (3+Xdialog.tips)*list_size;
 				win = TRUE;
