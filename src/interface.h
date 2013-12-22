@@ -61,6 +61,7 @@
 #ifdef FRENCH				/* french translations without NLS */
 #	define OK "OK"
 #	define CANCEL "Annuler"
+#	define EXTRA "Supplémentaire"
 #	define YES "Oui"
 #	define NO "Non"
 #	define HELP "Aide"
@@ -76,6 +77,7 @@
 #	define HIDE_TYPING "Masquer la saisie"
 #else
 #	define OK _("OK")
+#	define EXTRA _("Extra")
 #	define CANCEL _("Cancel")
 #	define YES _("Yes")
 #	define NO _("No")
@@ -129,6 +131,7 @@ typedef struct	{
 	gchar		check_label[MAX_CHECK_LABEL_LENGTH];	/* Check button label text */
 	gchar		ok_label[MAX_BUTTON_LABEL_LENGTH];	/* OK button label text */
 	gchar		cancel_label[MAX_BUTTON_LABEL_LENGTH];	/* CANCEL button label text */
+	gchar		extra_label[MAX_BUTTON_LABEL_LENGTH];	/* EXTRA button label text */
 	gchar		default_item[MAX_ITEM_LENGTH];		/* Tag of the default item */
 	gchar		separator[2];				/* Xdialog output result separator */
 	gint		xsize;					/* Xdialog window X size */
@@ -156,6 +159,7 @@ typedef struct	{
 	gboolean	buttons;				/* FALSE to prevent setting up buttons */
 	gboolean	ok_button;				/* FALSE to prevent setting up OK button in tailbox/logbox */
 	gboolean	cancel_button;				/* FALSE to prevent setting up Cancel button */
+	gboolean	extra_button;			/* FALSE to prevent setting up EXTRA */
 	gboolean	help;					/* TRUE to setup the Help button */
 	gboolean	default_no;				/* When TRUE No/Cancel is the default button */
 	gboolean	wizard;					/* TRUE to setup Wizard buttons */

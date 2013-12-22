@@ -29,6 +29,7 @@
 #include "help.xpm"
 #include "print.xpm"
 #include "next.xpm"
+#include "extra.xpm"
 #include "previous.xpm"
 #endif
 
@@ -387,6 +388,8 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 			stock_id = "gtk-close";
 		else if (!strcmp(text, HELP))
 			stock_id = "gtk-help";
+		else if (!strcmp(text, EXTRA))
+			stock_id = "gtk-execute";
 		else if (!strcmp(text, PRINT))
 			stock_id = "gtk-print";
 		else if (!strcmp(text, NEXT) || !strcmp(text, ADD))
@@ -402,6 +405,8 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 			xpm = no_xpm;
 		else if (!strcmp(text, HELP))
 			xpm = help_xpm;
+		else if (!strcmp(text, EXTRA))
+			xpm = extra_xpm;
 		else if (!strcmp(text, PRINT))
 			xpm = print_xpm;
 		else if (!strcmp(text, NEXT) || !strcmp(text, ADD))
@@ -413,6 +418,8 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 
 	if (strlen(Xdialog.ok_label) != 0 && (!strcmp(text, OK) || !strcmp(text, YES)))
 		text = Xdialog.ok_label;
+	if (strlen(Xdialog.extra_label) != 0 && (!strcmp(text, EXTRA)))
+		text = Xdialog.extra_label;
 	else if (strlen(Xdialog.cancel_label) != 0 && (!strcmp(text, CANCEL) || !strcmp(text, NO)))
 		text = Xdialog.cancel_label;
 
@@ -475,6 +482,12 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 						 GTK_SIGNAL_FUNC(print_text),
 						 NULL);
 			break;
+		case 5:
+			gtk_signal_connect_after(GTK_OBJECT(button), "clicked",
+						 GTK_SIGNAL_FUNC(exit_extra),
+						 NULL);
+			break;
+
 	}
 	if (grab_default)
 		gtk_widget_grab_default(button);
@@ -526,8 +539,13 @@ static GtkWidget *set_all_buttons(gboolean print, gboolean ok)
 
 	if (Xdialog.wizard)
 		set_button(PREVIOUS , hbuttonbox, 3, FALSE);
-	else if (ok)
-		button_ok = set_button(OK, hbuttonbox, 0, !Xdialog.default_no);
+	else {
+		if(Xdialog.extra_button)
+			button_ok = set_button(EXTRA, hbuttonbox, 5, !Xdialog.default_no);
+
+		if (ok)
+			button_ok = set_button(OK, hbuttonbox, 0, !Xdialog.default_no);
+	}
 	if (Xdialog.cancel_button)
 		set_button(CANCEL , hbuttonbox, 1, Xdialog.default_no && !Xdialog.wizard);
 	if (Xdialog.wizard)

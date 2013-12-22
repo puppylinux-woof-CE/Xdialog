@@ -87,6 +87,8 @@ Transient options:\n\
   --check <label> [<status>]\n\
   --ok-label <label>\n\
   --cancel-label <label>\n\
+  --extra-button\n\
+  --extra-label <label>\n\
   --beep\n\
   --beep-after\n\
   --begin <Yorg> <Xorg>\n\
@@ -223,6 +225,7 @@ enum {
 	T_REVERSE,
 	T_KEEPCOLORS,
 	T_NOOK,
+	T_EXTRA,
 	T_NOCANCEL,
 	T_NOBUTTONS,
 	T_NOTAGS,
@@ -234,6 +237,7 @@ enum {
 	T_DEFAULTNO,
 	T_OKLABEL,
 	T_CANCELLABEL,
+	T_EXTRALABEL,
 	T_ICON,
 	T_INTERVAL,
 	T_TIMEOUT,
@@ -276,7 +280,7 @@ static void print_help_info(char *name, char *errmsg)
 
 	strcpysafe(Xdialog.title, "Usage for ", MAX_TITLE_LENGTH);
 	strcatsafe(Xdialog.title, cmd, MAX_TITLE_LENGTH);
-	Xdialog.cancel_button = Xdialog.help = Xdialog.icon = Xdialog.check = FALSE;
+	Xdialog.cancel_button = Xdialog.help = Xdialog.icon = Xdialog.check = Xdialog.extra_button = FALSE;
 	if (!Xdialog.print) {
 		Xdialog.print = TRUE;
 		Xdialog.printer[0] = 0;
@@ -630,6 +634,9 @@ int main(int argc, char *argv[])
                 {"version",		0, 0, S_VERSION},
                 {"print-version",	0, 0, S_PRINTVERSION},
                 {"clear",		0, 0, S_CLEAR},
+		/* Nomius patch for extra button */
+                {"extra-button",		0, 0, T_EXTRA},
+                {"extra-label",	1, 0, T_EXTRALABEL},
 		/* End of options marker */
 		{0, 0, 0, 0}
 	};
@@ -680,7 +687,8 @@ int main(int argc, char *argv[])
 	Xdialog.buttons_style	= ICON_AND_TEXT;	/* Default buttons style (icon+text) */
 	Xdialog.buttons		= TRUE;			/* Display buttons as default */
 	Xdialog.ok_button	= TRUE;			/* Display "OK" button as default */
-	Xdialog.cancel_button	= TRUE;			/* Display "Cancel" button as default */
+	Xdialog.cancel_button	= TRUE;		/* Display "Cancel" button as default */
+	Xdialog.extra_button	= FALSE;	/* Don't Display "Extra" button as default */
 	Xdialog.tags		= TRUE;			/* Display tags before items in lists */
 #if 0	/* Not needed because of the memset: listed here as a reminder only... */
 	Xdialog.passwd		= 0;			/* Don't use passwd input as default */
@@ -1159,6 +1167,12 @@ show_again:
 			case T_CANCELLABEL:		/* --ok-label option */
 				strcpysafe(Xdialog.cancel_label, optarg, MAX_BUTTON_LABEL_LENGTH);
 				break;
+			case T_EXTRA:	/* --extra-button option */
+				Xdialog.extra_button = TRUE;
+				break;
+			case T_EXTRALABEL:		/* --extra-label option */
+				strcpysafe(Xdialog.extra_label, optarg, MAX_BUTTON_LABEL_LENGTH);
+				break;
 			case T_ICON:		/* --icon option */
 				strcpysafe(Xdialog.icon_file, optarg, MAX_FILENAME_LENGTH);
 				Xdialog.icon = TRUE;
@@ -1300,6 +1314,7 @@ show_again:
 			Xdialog.default_item[0]	= 0;
 			Xdialog.ok_label[0]	= 0;
 			Xdialog.cancel_label[0]	= 0;
+			Xdialog.extra_label[0]	= 0;
 			Xdialog.ignore_eof	= FALSE;
 			Xdialog.smooth		= FALSE;
 		}

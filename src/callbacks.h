@@ -7,6 +7,8 @@ gboolean destroy_event(gpointer object, GdkEventAny *event, gpointer data);
 
 gboolean exit_ok(gpointer object, gpointer data);
 
+gboolean exit_extra(gpointer object, gpointer data);
+
 gboolean exit_cancel(gpointer object, gpointer data);
 
 gboolean exit_keypress(gpointer object, GdkEventKey *event, gpointer data);

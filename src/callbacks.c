@@ -88,6 +88,19 @@ gboolean exit_ok(gpointer object, gpointer data)
 	return FALSE;
 }
 
+gboolean exit_extra(gpointer object, gpointer data)
+{
+	if (Xdialog.check) {
+		if (Xdialog.checked)
+			fprintf(Xdialog.output, "checked\n");
+		else
+			fprintf(Xdialog.output, "unchecked\n");
+	}
+	gtk_widget_destroy(Xdialog.window);
+	Xdialog.exit_code = 3;
+	return FALSE;
+}
+
 gboolean exit_cancel(gpointer object, gpointer data)
 {
 	Xdialog.exit_code = 1;
