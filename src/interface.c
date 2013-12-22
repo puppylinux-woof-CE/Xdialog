@@ -1230,6 +1230,8 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	for (i = 0; i < list_size; i++)
 		glist = g_list_append(glist, options[i]);
 	gtk_combo_set_popdown_strings(GTK_COMBO(combo), glist);
+	if (strlen(Xdialog.default_item) != 0)
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(combo)->entry), Xdialog.default_item);
 
 	gtk_entry_set_editable(GTK_ENTRY(Xdialog.widget1), Xdialog.editable);
 
