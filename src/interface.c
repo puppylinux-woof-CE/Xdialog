@@ -489,8 +489,10 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 			break;
 
 	}
-	if (grab_default)
+	if (grab_default) {
+		gtk_widget_set_can_default(button, TRUE);
 		gtk_widget_grab_default(button);
+	}
 
 	gtk_widget_show(button);
 
@@ -742,6 +744,7 @@ static void set_timeout(void)
 void create_msgbox(gchar *optarg, gboolean yesno)
 {
 	GtkWidget *hbuttonbox; 
+	GtkWidget *button;
 
 	open_window();
 
@@ -759,7 +762,9 @@ void create_msgbox(gchar *optarg, gboolean yesno)
 			set_button(NEXT, hbuttonbox, 0, TRUE);
 		} else {
 			set_button(YES, hbuttonbox, 0, !Xdialog.default_no);
-			set_button(NO , hbuttonbox, 1, Xdialog.default_no);
+			button = set_button(NO , hbuttonbox, 1, Xdialog.default_no);
+			if (Xdialog.default_no)
+				gtk_widget_grab_focus(button);
 		}
 	} else 
 		set_button(OK, hbuttonbox, 0, TRUE);
