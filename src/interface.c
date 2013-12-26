@@ -1222,21 +1222,41 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, TRUE);
 
-	combo = gtk_combo_new();
+#ifdef USE_GTK2
+	combo = gtk_combo_box_entry_new_text(); 
+	Xdialog.widget1 = GTK_ENTRY (GTK_BIN (combo)->child);
+#else
+	combo = gtk_combo_new(); 
 	Xdialog.widget1 = GTK_COMBO(combo)->entry;
+#endif
 	Xdialog.widget2 = Xdialog.widget3 = NULL;
 	gtk_box_pack_start(Xdialog.vbox, combo, TRUE, TRUE, 0);
 	gtk_widget_grab_focus(Xdialog.widget1);
 	gtk_widget_show(combo);
+#ifndef USE_GTK2
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "key_press_event",
 			   GTK_SIGNAL_FUNC(input_keypress), NULL);
+#endif
 
 	/* Set the popdown strings */
+#ifdef USE_GTK2	
+	for (i = 0; i < list_size; i++)
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), options[i]);
+#else
 	for (i = 0; i < list_size; i++)
 		glist = g_list_append(glist, options[i]);
 	gtk_combo_set_popdown_strings(GTK_COMBO(combo), glist);
+#endif
+
 	if (strlen(Xdialog.default_item) != 0)
+#ifdef USE_GTK2
+	{
+		gtk_combo_box_prepend_text(GTK_COMBO_BOX(combo), Xdialog.default_item);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+	}
+#else
 		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(combo)->entry), Xdialog.default_item);
+#endif
 
 	gtk_entry_set_editable(GTK_ENTRY(Xdialog.widget1), Xdialog.editable);
 
