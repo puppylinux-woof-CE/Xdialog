@@ -37,7 +37,11 @@
  */
 
 #ifndef FIXED_FONT
-#define FIXED_FONT "-*-*-medium-r-normal-*-*-*-*-*-m-70-*-*"
+#ifdef USE_GTK2
+#	define FIXED_FONT "mono"
+#else
+#	define FIXED_FONT "-*-*-medium-r-normal-*-*-*-*-*-m-70-*-*"
+#endif
 #endif
 
 #ifndef PRINTER_CMD

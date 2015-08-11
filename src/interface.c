@@ -39,7 +39,11 @@ extern gboolean dialog_compat;
 
 /* Fixed font loading and character size (in pixels) initialisation */
 
-static GdkFont *fixed_font;
+#ifdef USE_GTK2
+	static PangoFontDescription *fixed_font;
+#else
+	static GdkFont *fixed_font;
+#endif
 static gint xmult = XSIZE_MULT;
 static gint ymult = YSIZE_MULT;
 static gint ffxmult = XSIZE_MULT;
@@ -67,7 +71,13 @@ static void font_init(void)
 	GtkStyle  *style;
 	GdkFont *font;
 	gint width, ascent, descent, lbearing, rbearing;
-
+#ifdef USE_GTK2
+	/* fixed font support by 01micko */
+	fixed_font = pango_font_description_new ();
+	pango_font_description_set_family (fixed_font, FIXED_FONT);
+	pango_font_description_set_weight (fixed_font, PANGO_WEIGHT_MEDIUM);
+	pango_font_description_set_size (fixed_font, 10*PANGO_SCALE);
+#else
 	fixed_font = gdk_font_load(FIXED_FONT);
 
 	if (fixed_font != NULL) {
@@ -76,7 +86,7 @@ static void font_init(void)
 		ffxmult = width / 62;			/* 62 = strlen(ALPHANUM_CHARS) */
 		ffymult = ascent + descent + 2;		/*  2 = spacing pixel lines */
 	}
-
+#endif
 	if (dialog_compat) {
 		xmult = ffxmult;
 		ymult = ffymult;
@@ -565,17 +575,21 @@ static GtkWidget *set_scrollable_text(void)
 {
 	GtkWidget *text;
 	GtkWidget *scrollwin;
-
+	GtkStyle  *style;
+	
 	scrollwin = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show (scrollwin);
 	gtk_box_pack_start (GTK_BOX(Xdialog.vbox), scrollwin, TRUE, TRUE, 0);
 
 	text = gtk_text_view_new();
-#if 0
-	/* TODO: implement fixed font style support... */
+
+	/* fixed font support by 01micko */
 	if (Xdialog.fixed_font) {
+		style = gtk_style_new();
+		style->font_desc = fixed_font;
+		gtk_widget_modify_font(text, style->font_desc);
 	}
-#endif
+
 	gtk_widget_show(text);
 	gtk_container_add(GTK_CONTAINER (scrollwin), text);
 	return text;
