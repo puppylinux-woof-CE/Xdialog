@@ -956,7 +956,7 @@ void cb_selection_changed(GtkObject *tree)
 	GtkTreeIter tree_iter;
 	GtkTreeModel *model;
 	GtkTreeSelection* selection;
-	gchar *name, *tag;
+	gchar *name=0, *tag=0;
 	int i = 0;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
@@ -965,15 +965,17 @@ void cb_selection_changed(GtkObject *tree)
 	if (gtk_tree_selection_get_selected(selection, &model, &tree_iter))
 		gtk_tree_model_get(model, &tree_iter, 0, &name, 1, &tag, -1);
 
-	for (i = 0 ; Xdialog.array[i].state != -1 ; i++) {
-		if (!strncmp(Xdialog.array[i].name, name, strlen(name)))
-			Xdialog.array[i].state = 1;
-		else
-			Xdialog.array[i].state = 0;
+	if (name && tag) {
+		for (i = 0 ; Xdialog.array[i].state != -1 ; i++) {
+			if (!strncmp(Xdialog.array[i].name, name, strlen(name)))
+				Xdialog.array[i].state = 1;
+			else
+				Xdialog.array[i].state = 0;
+		}
 	}
 
-	g_free(name);
-	g_free(tag);
+	if (name) g_free(name);
+	if (tag) g_free(tag);
 }
 #else
 void cb_selection_changed(GtkObject *tree)
