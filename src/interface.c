@@ -776,6 +776,8 @@ void create_msgbox(gchar *optarg, gboolean yesno)
 			set_button(NEXT, hbuttonbox, 0, TRUE);
 		} else {
 			set_button(YES, hbuttonbox, 0, !Xdialog.default_no);
+			if (Xdialog.extra_button)
+				set_button(EXTRA, hbuttonbox, 5, FALSE);
 			button = set_button(NO , hbuttonbox, 1, Xdialog.default_no);
 			if (Xdialog.default_no)
 				gtk_widget_grab_focus(button);
