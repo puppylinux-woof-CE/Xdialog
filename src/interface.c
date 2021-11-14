@@ -1747,7 +1747,8 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	gtk_tree_view_append_column(GTK_TREE_VIEW(Xdialog.widget1), column);
 
 	gtk_widget_show(Xdialog.widget1);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), Xdialog.widget1);
+	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), Xdialog.widget1);
+	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget1);
 
 	/* Create and hookup the ok button */
 	button_ok = set_all_buttons(FALSE, TRUE);
@@ -1792,7 +1793,8 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 
 	Xdialog.widget1 = gtk_tree_new();
 	gtk_widget_show(Xdialog.widget1);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window),
+	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window),
+	gtk_container_add(GTK_CONTAINER(scrolled_window),
 					      Xdialog.widget1);
 	button_ok = set_all_buttons(FALSE, TRUE);
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_selection), NULL);
