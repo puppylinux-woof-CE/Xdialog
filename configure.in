@@ -29,19 +29,29 @@ rm -f ./intl/libintl.h
 ALL_LINGUAS="fr de ru es hu pt_BR no_NO id nl it pl ca sv_SE"
 AM_GNU_GETTEXT([external])
 
-compile_for="gtk1"
+compile_for="gtk2"
+AC_ARG_WITH(gtk3,
+  [  --with-gtk3             Compiles for GTK3],[
+  compile_for="gtk3"
+  CPPFLAGS="$CPPFLAGS -DUSE_GTK3"
+  AC_MSG_RESULT(Compiling for GTK3)
+  ])
 AC_ARG_WITH(gtk2,
   [  --with-gtk2             Compiles for GTK2],[
   compile_for="gtk2"
   CPPFLAGS="$CPPFLAGS -DUSE_GTK2"
   AC_MSG_RESULT(Compiling for GTK2)
   ])
-if test "$compile_for" = "gtk2" ; then
+if test "$compile_for" = "gtk3" ; then
+  AM_PATH_GTK_3_0(3.22.0, ,
+            AC_MSG_ERROR(Cannot find GTK3.))
+elif test "$compile_for" = "gtk2" ; then
   AM_PATH_GTK_2_0(2.2.0, ,
             AC_MSG_ERROR(Cannot find GTK2.))
 else
-  AM_PATH_GTK(1.2.0, ,
-            AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?))
+dnl  AM_PATH_GTK(1.2.0, ,
+dnl           AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?))
+  AC_MSG_ERROR(GTK1 no longer supported)
 fi
 
 dnl Set PACKAGE_DATA_DIR in config.h.
