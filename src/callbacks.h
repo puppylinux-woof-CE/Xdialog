@@ -68,7 +68,7 @@ void item_select(GtkObject *clist, gint row, gint column, GdkEventButton *event,
 
 gboolean print_selection(GtkButton *button, gpointer data);
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean print_tree_selection(GtkButton *button, gpointer data);
 #endif
 

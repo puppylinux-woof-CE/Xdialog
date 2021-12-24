@@ -37,7 +37,7 @@
  */
 
 #ifndef FIXED_FONT
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 #	define FIXED_FONT "mono"
 #else
 #	define FIXED_FONT "-*-*-medium-r-normal-*-*-*-*-*-m-70-*-*"

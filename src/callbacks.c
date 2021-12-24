@@ -331,7 +331,7 @@ gboolean progress_timeout(gpointer data)
 
 /* tailbox and logbox callbacks */
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean tailbox_timeout(gpointer data)
 {
 	gchar buffer[1024];
@@ -700,7 +700,7 @@ gboolean hide_passwords(GtkObject *button, gpointer data)
 
 /* editbox callback */
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean editbox_ok(gpointer object, gpointer data)
 {
 	GtkTextIter start_iter, end_iter;
@@ -728,7 +728,7 @@ gboolean editbox_ok(gpointer object, gpointer data)
 
 /* The print button callback (used by editbox, textbox and tailbox) */
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean print_text(gpointer object, gpointer data)
 {
 	gint length;
@@ -922,7 +922,7 @@ gboolean print_selection(GtkButton *button, gpointer data)
 		return FALSE;
 }
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean print_tree_selection(GtkButton *button, gpointer data)
 {
 	int i = 0;
@@ -950,7 +950,7 @@ gboolean move_to_row_timeout(gpointer data)
 	return FALSE;	
 }
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 void cb_selection_changed(GtkObject *tree)
 {
 	GtkTreeIter tree_iter;
@@ -1080,7 +1080,7 @@ gboolean filesel_exit(GtkObject *filesel, gpointer client_data)
 }
 
 /* dselect callback */
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean dirsel_exit(GtkObject *filesel, gpointer client_data)
 {
 	fprintf(Xdialog.output, "%s/\n",

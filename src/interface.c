@@ -23,7 +23,7 @@
 #include "callbacks.h"
 #include "support.h"
 
-#ifndef USE_GTK2
+#if !defined(USE_GTK2) && !defined(USE_GTK3)
 #include "yes.xpm"
 #include "no.xpm"
 #include "help.xpm"
@@ -39,7 +39,7 @@ extern gboolean dialog_compat;
 
 /* Fixed font loading and character size (in pixels) initialisation */
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	static PangoFontDescription *fixed_font;
 #else
 	static GdkFont *fixed_font;
@@ -71,7 +71,7 @@ static void font_init(void)
 	GtkStyle  *style;
 	GdkFont *font;
 	gint width, ascent, descent, lbearing, rbearing;
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	/* fixed font support by 01micko */
 	fixed_font = pango_font_description_new ();
 	pango_font_description_set_family (fixed_font, FIXED_FONT);
@@ -98,7 +98,7 @@ static void font_init(void)
 		style = window->style;
 		if (style != NULL) {
 			/* For proportionnal fonts, we use the average character width... */
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 			font = gtk_style_get_font(style);
 #else
 			font = style->font;
@@ -119,7 +119,7 @@ static void wrap_text(gchar *str, gint reserved_width)
 	gint max_line_width, n = 0;
 	gchar *p = str, *last_space = NULL;
 	gchar tmp[MAX_LABEL_LENGTH];
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	GdkFont *current_font = gtk_style_get_font(Xdialog.window->style);
 #else
 	GdkFont *current_font = Xdialog.window->style->font;
@@ -377,7 +377,7 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 			     gboolean grab_default)
 {
 	GtkWidget *button;
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	gchar	  *stock_id = NULL;
 #else
 	GdkBitmap *mask;
@@ -390,7 +390,7 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 	GtkWidget *label;
 	gchar     *text = default_text;
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	if (Xdialog.buttons_style != TEXT_ONLY) {
 		if (!strcmp(text, OK) || !strcmp(text, YES))
 			stock_id = "gtk-ok";
@@ -441,7 +441,7 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 		gtk_container_add(GTK_CONTAINER(button), hbox);
 		gtk_widget_show(hbox);
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 		icon = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_BUTTON);
 #else
 		pixmap = gdk_pixmap_create_from_xpm_d(Xdialog.window->window,
@@ -570,7 +570,7 @@ static GtkWidget *set_all_buttons(gboolean print, gboolean ok)
 	return button_ok;
 }
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 static GtkWidget *set_scrollable_text(void)
 {
 	GtkWidget *text;
@@ -660,7 +660,7 @@ static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
 	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize, list_size, spacing);
 	list = gtk_list_new();
 	gtk_widget_show(list);
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_list_set_selection_mode(GTK_LIST(list), GTK_SELECTION_MULTIPLE);
 #endif
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), list);
@@ -1043,7 +1043,7 @@ void create_logbox(gchar *optarg)
 
 void create_textbox(gchar *optarg, gboolean editable)
 {
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	GtkTextView *text;
 	GtkTextBuffer *text_buffer;
 #else
@@ -1059,7 +1059,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 
 	Xdialog.widget1 = set_scrollable_text();
 	gtk_widget_grab_focus(Xdialog.widget1);
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	text = GTK_TEXT_VIEW(Xdialog.widget1);
 	text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
 #else
@@ -1067,7 +1067,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 #endif
 
 	/* Fill the GtkText with the text */
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_text_freeze(text);
 #endif
 	if (strcmp(optarg, "-") == 0)
@@ -1080,7 +1080,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 
 		do {
 			nchars = fread(buffer, 1, 1024, infile);
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 			gtk_text_buffer_insert_at_cursor(text_buffer, buffer, nchars);
 #else
 			gtk_text_insert(text, NULL, NULL, NULL, buffer, nchars);
@@ -1104,7 +1104,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 		if (infile != stdin)
 			fclose(infile);
 	}
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_text_thaw(text);
 #endif
 	llen += 4;
@@ -1118,7 +1118,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 				     MIN(lcnt*ymult, gdk_screen_height()-10*ymult));
 
 	/* Set the editable flag depending on what we want (text or edit box) */
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	gtk_text_view_set_editable(text, editable);
 #else
 	gtk_text_set_editable(text, editable);
@@ -1164,7 +1164,7 @@ void create_inputbox(gchar *optarg, gchar *options[], gint entries)
 
 	Xdialog.widget1 = gtk_entry_new();
 	entry = GTK_ENTRY(Xdialog.widget1);
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	/* Would kill the entry of text in GTK2, so we enable it for GTK+ only. */
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "key_press_event",
 			   GTK_SIGNAL_FUNC(input_keypress), NULL);
@@ -1179,7 +1179,7 @@ void create_inputbox(gchar *optarg, gchar *options[], gint entries)
 
 		Xdialog.widget2 = gtk_entry_new();
 		entry = GTK_ENTRY(Xdialog.widget2);
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 		gtk_signal_connect(GTK_OBJECT(Xdialog.widget2), "key_press_event",
 				   GTK_SIGNAL_FUNC(input_keypress), NULL);
 #endif
@@ -1194,7 +1194,7 @@ void create_inputbox(gchar *optarg, gchar *options[], gint entries)
 
 		Xdialog.widget3 = gtk_entry_new();
 		entry = GTK_ENTRY(Xdialog.widget3);
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 		gtk_signal_connect(GTK_OBJECT(Xdialog.widget3), "key_press_event",
 				   GTK_SIGNAL_FUNC(input_keypress), NULL);
 #endif
@@ -1238,7 +1238,7 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, TRUE);
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	combo = gtk_combo_box_entry_new_text(); 
 	Xdialog.widget1 = GTK_ENTRY (GTK_BIN (combo)->child);
 #else
@@ -1249,13 +1249,13 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	gtk_box_pack_start(Xdialog.vbox, combo, TRUE, TRUE, 0);
 	gtk_widget_grab_focus(Xdialog.widget1);
 	gtk_widget_show(combo);
-#ifndef USE_GTK2
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "key_press_event",
 			   GTK_SIGNAL_FUNC(input_keypress), NULL);
 #endif
 
 	/* Set the popdown strings */
-#ifdef USE_GTK2	
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	for (i = 0; i < list_size; i++)
 		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), options[i]);
 #else
@@ -1265,7 +1265,7 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 #endif
 
 	if (strlen(Xdialog.default_item) != 0)
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	{
 		gtk_combo_box_prepend_text(GTK_COMBO_BOX(combo), Xdialog.default_item);
 		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
@@ -1679,7 +1679,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	set_timeout();
 }
 
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 /* TODO: implement tooltips support */
 void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 {
@@ -2001,7 +2001,7 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	/* Create a color selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_color_selection_dialog_new(Xdialog.title);
 	colorsel = GTK_COLOR_SELECTION_DIALOG(Xdialog.window);
-#ifdef USE_GTK2
+#if defined(USE_GTK2) || defined(USE_GTK3)
 	Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(colorsel->colorsel, gtk_box_get_type()));
 #else
 	Xdialog.vbox = GTK_BOX(colorsel->main_vbox);
