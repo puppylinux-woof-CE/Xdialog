@@ -199,11 +199,19 @@ static void set_window_size_and_placement(void)
 	}
 
 	/* Allow the window to grow, shrink and auto-shrink */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_window_set_resizable(GTK_WINDOW(Xdialog.window), TRUE);
+#else
 	gtk_window_set_policy(GTK_WINDOW(Xdialog.window), TRUE, TRUE, TRUE);
+#endif
 
 	/* Set the window placement policy */
 	if (Xdialog.set_origin)
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		gdk_window_move(gtk_widget_get_window(Xdialog.window),
+#else
 		gdk_window_move(Xdialog.window->window,
+#endif
 				Xdialog.xorg >= 0 ? (Xdialog.size_in_pixels ? Xdialog.xorg : Xdialog.xorg*xmult) :
 						    gdk_screen_width()  + Xdialog.xorg - Xdialog.xsize - 2*xmult,
 				Xdialog.yorg >= 0 ? (Xdialog.size_in_pixels ? Xdialog.yorg : Xdialog.yorg*ymult) :
@@ -508,7 +516,11 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 	}
 
 	gtk_container_add(GTK_CONTAINER(buttonbox), button);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_set_can_default(button, TRUE);
+#else
 	GTK_WIDGET_SET_FLAGS(button, GTK_CAN_DEFAULT);
+#endif
 
 #if defined(USE_GTK2) || defined(USE_GTK3)
 	switch (event) {
@@ -1042,7 +1054,11 @@ void create_tailbox(gchar *optarg)
 	set_backtitle(FALSE);
 
 	Xdialog.widget1 = set_scrollable_text();
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_set_size_request(Xdialog.widget1, 40*xmult, 15*ymult);
+#else
 	gtk_widget_set_usize(Xdialog.widget1, 40*xmult, 15*ymult);
+#endif
 	gtk_widget_grab_focus(Xdialog.widget1);
 #if defined(USE_GTK2) || defined(USE_GTK3)
 	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "key_press_event",
