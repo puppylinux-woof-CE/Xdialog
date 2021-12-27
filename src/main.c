@@ -709,7 +709,9 @@ int main(int argc, char *argv[])
 	    (gtk_major_version == 1 && gtk_minor_version < 2))
 		fprintf(stderr,
 			"%s: GTK+ version too old, please upgrade !\n", argv[0]);
+#if !defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_set_locale();
+#endif
 
 	/* Set custom log handler routines, so that GTK, GDK and GLIB never
          * print anything on stdout, but always use stderr instead.

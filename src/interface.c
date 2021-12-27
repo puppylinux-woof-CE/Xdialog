@@ -202,10 +202,17 @@ static void open_window(void)
 				       Xdialog.wmclass);
 
 	/* Set default events handlers */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(window), "destroy",
+			   G_CALLBACK(destroy_event), NULL);
+	g_signal_connect(GTK_WIDGET(window), "delete_event",
+			   G_CALLBACK(delete_event), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(window), "delete_event",
 			   GTK_SIGNAL_FUNC(delete_event), NULL);
+#endif
 
 	/* Set the window title */
 	gtk_window_set_title(GTK_WINDOW(window), Xdialog.title);
@@ -463,6 +470,43 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 	gtk_container_add(GTK_CONTAINER(buttonbox), button);
 	GTK_WIDGET_SET_FLAGS(button, GTK_CAN_DEFAULT);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	switch (event) {
+		case 0:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(exit_ok),
+						 NULL);
+			break;
+		case 1:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(exit_cancel),
+						 NULL);
+			g_signal_connect_after(GTK_WIDGET(Xdialog.window), "key_press_event",
+						 G_CALLBACK(exit_keypress), NULL);
+
+			break;
+		case 2:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(exit_help),
+						 NULL);
+			break;
+		case 3:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(exit_previous),
+						 NULL);
+			break;
+		case 4:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(print_text),
+						 NULL);
+			break;
+		case 5:
+			g_signal_connect_after(GTK_WIDGET(button), "clicked",
+						 G_CALLBACK(exit_extra),
+						 NULL);
+			break;
+	}
+#else
 	switch (event) {
 		case 0:
 			gtk_signal_connect_after(GTK_OBJECT(button), "clicked",
@@ -497,8 +541,8 @@ static GtkWidget *set_button(gchar *default_text, gpointer buttonbox, gint event
 						 GTK_SIGNAL_FUNC(exit_extra),
 						 NULL);
 			break;
-
 	}
+#endif
 	if (grab_default) {
 		gtk_widget_set_can_default(button, TRUE);
 		gtk_widget_grab_default(button);
@@ -536,8 +580,13 @@ static void set_check_button(GtkWidget *box)
 	if (Xdialog.checked)
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), TRUE);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button), "toggled",
+			   G_CALLBACK(checked), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button), "toggled",
 			   GTK_SIGNAL_FUNC(checked), NULL);
+#endif
 }
 
 static GtkWidget *set_all_buttons(gboolean print, gboolean ok)
@@ -639,6 +688,15 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 	gtk_box_pack_start(box, scrolled_window, TRUE, TRUE, 0);
 	gtk_widget_show(scrolled_window);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	if (Xdialog.list_height > 0)
+		gtk_widget_set_size_request(scrolled_window, xsize > 0 ? xsize*xmult : -1,
+				     Xdialog.list_height * (ymult + spacing));
+	else
+		gtk_widget_set_size_request(scrolled_window, xsize > 0 ? xsize*xmult : -1,
+				     MIN(gdk_screen_height() - 15 * ymult,
+					 list_size * (ymult + spacing)));
+#else
 	if (Xdialog.list_height > 0)
 		gtk_widget_set_usize(scrolled_window, xsize > 0 ? xsize*xmult : -1,
 				     Xdialog.list_height * (ymult + spacing));
@@ -646,6 +704,7 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 		gtk_widget_set_usize(scrolled_window, xsize > 0 ? xsize*xmult : -1,
 				     MIN(gdk_screen_height() - 15 * ymult,
 					 list_size * (ymult + spacing)));
+#endif
 
 	return scrolled_window;
 }
@@ -703,7 +762,11 @@ static GtkWidget *set_spin_button(GtkWidget *hbox, gint min, gint max, gint defl
 	spin = gtk_spin_button_new(adjust, 0.5, 0);
 	gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(spin), TRUE);
 	gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(spin), TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_set_size_request(spin, (digits+4)*xmult, -1);
+#else
 	gtk_widget_set_usize(spin, (digits+4)*xmult, -1);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), spin, FALSE, FALSE, 0);
 	gtk_widget_show(spin);
 	if (separator != NULL && strlen(separator) != 0) {
@@ -874,7 +937,7 @@ void create_progress(gchar *optarg, gint leading, gint maxdots)
 	GtkProgress *pbar;
 	GtkAdjustment *adj;
 	int ceiling, i;
-	unsigned char temp[2];
+	char temp[2];
 
 	if (maxdots <= 0)
 		ceiling = 100;
@@ -941,8 +1004,13 @@ void create_tailbox(gchar *optarg)
 	Xdialog.widget1 = set_scrollable_text();
 	gtk_widget_set_usize(Xdialog.widget1, 40*xmult, 15*ymult);
 	gtk_widget_grab_focus(Xdialog.widget1);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "key_press_event",
+			   G_CALLBACK(tailbox_keypress), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "key_press_event",
 			   GTK_SIGNAL_FUNC(tailbox_keypress), NULL);
+#endif
 
 	if (strcmp(optarg, "-") == 0)
 		Xdialog.file = stdin;
@@ -1006,8 +1074,13 @@ void create_logbox(gchar *optarg)
 	 * and similar warnings with GTK+ v1.2.9 (and perhaps with previous versions as well)...
 	 */
 	gtk_clist_columns_autosize(clist);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "key_press_event",
+			   G_CALLBACK(tailbox_keypress), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "key_press_event",
 			   GTK_SIGNAL_FUNC(tailbox_keypress), NULL);
+#endif
 	gtk_widget_show(Xdialog.widget1);
 	gtk_widget_grab_focus(Xdialog.widget1);
 
@@ -1107,7 +1180,19 @@ void create_textbox(gchar *optarg, gboolean editable)
 #if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	gtk_text_thaw(text);
 #endif
+
 	llen += 4;
+	
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	if (Xdialog.fixed_font)
+		gtk_widget_set_size_request(Xdialog.widget1,
+				     MIN(llen*ffxmult, gdk_screen_width()-4*ffxmult),
+				     MIN(lcnt*ffymult, gdk_screen_height()-10*ffymult));
+	else
+		gtk_widget_set_size_request(Xdialog.widget1,
+				     MIN(llen*xmult, gdk_screen_width()-4*xmult),
+				     MIN(lcnt*ymult, gdk_screen_height()-10*ymult));
+#else
 	if (Xdialog.fixed_font)
 		gtk_widget_set_usize(Xdialog.widget1,
 				     MIN(llen*ffxmult, gdk_screen_width()-4*ffxmult),
@@ -1116,6 +1201,7 @@ void create_textbox(gchar *optarg, gboolean editable)
 		gtk_widget_set_usize(Xdialog.widget1,
 				     MIN(llen*xmult, gdk_screen_width()-4*xmult),
 				     MIN(lcnt*ymult, gdk_screen_height()-10*ymult));
+#endif
 
 	/* Set the editable flag depending on what we want (text or edit box) */
 #if defined(USE_GTK2) || defined(USE_GTK3)
@@ -1132,8 +1218,13 @@ void create_textbox(gchar *optarg, gboolean editable)
 		button_ok = set_all_buttons(TRUE, TRUE);
 
 	if (editable)
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		g_signal_connect(GTK_WIDGET(button_ok), "clicked",
+				   G_CALLBACK(editbox_ok), NULL);
+#else
 		gtk_signal_connect(GTK_OBJECT(button_ok), "clicked",
 				   GTK_SIGNAL_FUNC(editbox_ok), NULL);
+#endif
 
 	set_timeout();
 }
@@ -1209,14 +1300,23 @@ void create_inputbox(gchar *optarg, gchar *options[], gint entries)
 		hide_button = gtk_check_button_new_with_label(HIDE_TYPING);
 		gtk_box_pack_start(Xdialog.vbox, hide_button, TRUE, TRUE, 0);
 		gtk_widget_show(hide_button);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		g_signal_connect(GTK_WIDGET(hide_button), "toggled",
+				   G_CALLBACK(hide_passwords), NULL);
+#else
 		gtk_signal_connect(GTK_OBJECT(hide_button), "toggled",
 				   GTK_SIGNAL_FUNC(hide_passwords), NULL);
+#endif
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hide_button), TRUE);
 	}
 
 	if (Xdialog.buttons) {
 		button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(inputbox_ok), NULL);
+#else
 		gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(inputbox_ok), NULL);
+#endif
 	}
 
 	if (Xdialog.interval > 0)
@@ -1230,7 +1330,9 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 {
 	GtkWidget *combo;
 	GtkWidget *button_ok = NULL;
+#if ! defined(USE_GTK2) && ! defined(USE_GTK3)
 	GList *glist = NULL;
+#endif
 	int i;
 
 	open_window();
@@ -1240,7 +1342,7 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 
 #if defined(USE_GTK2) || defined(USE_GTK3)
 	combo = gtk_combo_box_entry_new_text(); 
-	Xdialog.widget1 = GTK_ENTRY (GTK_BIN (combo)->child);
+	Xdialog.widget1 = GTK_WIDGET (GTK_BIN (combo)->child);
 #else
 	combo = gtk_combo_new(); 
 	Xdialog.widget1 = GTK_COMBO(combo)->entry;
@@ -1278,7 +1380,11 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 
 	if (Xdialog.buttons) {
 		button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(inputbox_ok), NULL);
+#else
 		gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(inputbox_ok), NULL);
+#endif
 	}
 
 	if (Xdialog.interval > 0)
@@ -1339,7 +1445,11 @@ void create_rangebox(gchar *optarg, gchar *options[], gint ranges)
 	}
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(rangebox_exit), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(rangebox_exit), NULL);
+#endif
 
 	if (Xdialog.interval > 0)
 		Xdialog.timer = gtk_timeout_add(Xdialog.interval, rangebox_timeout, NULL);
@@ -1384,7 +1494,11 @@ void create_spinbox(gchar *optarg, gchar *options[], gint spins)
 
 	button_ok = set_all_buttons(FALSE, TRUE);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(spinbox_exit), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(spinbox_exit), NULL);
+#endif
 
 	if (Xdialog.interval > 0)
 		Xdialog.timer = gtk_timeout_add(Xdialog.interval, spinbox_timeout, NULL);
@@ -1402,7 +1516,7 @@ void create_itemlist(gchar *optarg, gint type, gchar *options[], gint list_size)
 	GtkRadioButton *radio = NULL;
 	GtkTooltips *tooltips = NULL;
 	char temp[MAX_ITEM_LENGTH];
-	int i;
+	long i;
 	int params = 3 + Xdialog.tips;
 
 	if (Xdialog.tips == 1)
@@ -1423,7 +1537,11 @@ void create_itemlist(gchar *optarg, gint type, gchar *options[], gint list_size)
 	gtk_widget_show(vbox);
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_items), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_items), NULL);
+#endif
 
 	for (i = 0;  i < list_size; i++) {
 		strcpysafe(Xdialog.array[i].tag, options[params*i], MAX_ITEM_LENGTH);
@@ -1446,11 +1564,19 @@ void create_itemlist(gchar *optarg, gint type, gchar *options[], gint list_size)
 		if (item_status(item, options[params*i+2], Xdialog.array[i].tag) == 1)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(item), TRUE);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+		g_signal_connect(GTK_WIDGET(item), "toggled",
+				   G_CALLBACK(item_toggle), (gpointer)i);
+		g_signal_connect(GTK_WIDGET(item), "button_press_event",
+				   G_CALLBACK(double_click_event), button_ok);
+		g_signal_emit_by_name(GTK_WIDGET(item), "toggled");
+#else
 		gtk_signal_connect(GTK_OBJECT(item), "toggled",
 				   GTK_SIGNAL_FUNC(item_toggle), (gpointer)i);
 		gtk_signal_connect(GTK_OBJECT(item), "button_press_event",
 				   GTK_SIGNAL_FUNC(double_click_event), button_ok);
 		gtk_signal_emit_by_name(GTK_OBJECT(item), "toggled");
+#endif
 
 		if (Xdialog.tips == 1 && strlen(options[params*i+3]) > 0)
 			gtk_tooltips_set_tip(tooltips, item, (gchar *) options[params*i+3], NULL);
@@ -1520,17 +1646,29 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	gtk_box_pack_start(GTK_BOX(hbox), vbuttonbox, FALSE, TRUE, 0);
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(vbuttonbox), GTK_BUTTONBOX_SPREAD);
 	button_add = Xdialog.widget3 = set_button(ADD, vbuttonbox, -1, FALSE);
+	button_remove = Xdialog.widget4 = set_button(REMOVE, vbuttonbox, -1, FALSE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_add), "clicked",
+			   G_CALLBACK(add_to_list), NULL);
+	g_signal_connect(GTK_WIDGET(button_remove), "clicked",
+			   G_CALLBACK(remove_from_list), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_add), "clicked",
 			   GTK_SIGNAL_FUNC(add_to_list), NULL);
-	button_remove = Xdialog.widget4 = set_button(REMOVE, vbuttonbox, -1, FALSE);
 	gtk_signal_connect(GTK_OBJECT(button_remove), "clicked",
 			   GTK_SIGNAL_FUNC(remove_from_list), NULL);
+#endif
 
 	/* Setup the second list into a scrolled window */
 	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4);
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_list), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_list), NULL);
+#endif
+
 	gtk_list_append_items(GTK_LIST(Xdialog.widget1), glist1);
 	gtk_list_append_items(GTK_LIST(Xdialog.widget2), glist2);
 
@@ -1653,13 +1791,24 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget2);
 	gtk_widget_show(Xdialog.widget2);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.widget2), "select_row",
+			   G_CALLBACK(item_select), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget2), "select_row",
 			   GTK_SIGNAL_FUNC(item_select), NULL);
+#endif
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_selection), NULL);
+	g_signal_connect(GTK_WIDGET(Xdialog.widget2), "button_press_event",
+			   G_CALLBACK(double_click_event), button_ok);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_selection), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget2), "button_press_event",
 			   GTK_SIGNAL_FUNC(double_click_event), button_ok);
+#endif
 
 	if (Xdialog.tips == 1) {
 		hbox = gtk_hbox_new(FALSE, 0);
@@ -1752,7 +1901,11 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 
 	/* Create and hookup the ok button */
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_tree_selection), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_tree_selection), NULL);
+#endif
 
 	/* Setup the selection handler */
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(Xdialog.widget1));
@@ -1797,7 +1950,11 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	gtk_container_add(GTK_CONTAINER(scrolled_window),
 					      Xdialog.widget1);
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_selection), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(print_selection), NULL);
+#endif
 
 	tree = oldtree[0] = GTK_TREE(Xdialog.widget1);
 
@@ -1829,9 +1986,15 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 						exit(255);
 				}
 				subtree = gtk_tree_new();
+#if defined(USE_GTK2) || defined(USE_GTK3)
+				g_signal_connect(GTK_WIDGET(subtree), "button_press_event",
+						   G_CALLBACK(double_click_event),
+						   GTK_WIDGET(button_ok));
+#else
 				gtk_signal_connect(GTK_OBJECT(subtree), "button_press_event",
 						   GTK_SIGNAL_FUNC(double_click_event),
 						   GTK_WIDGET(button_ok));
+#endif
 				gtk_tree_item_set_subtree(GTK_TREE_ITEM(item), subtree);
 				depth++;
 				if (depth > MAX_TREE_DEPTH) {
@@ -1870,10 +2033,17 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 		gtk_tree_item_select(GTK_TREE_ITEM(selected));
 #endif
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "selection_changed",
+			   G_CALLBACK(cb_selection_changed), Xdialog.widget1);
+	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "button_press_event",
+			   G_CALLBACK(double_click_event), button_ok);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "selection_changed",
 			   GTK_SIGNAL_FUNC(cb_selection_changed), Xdialog.widget1);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "button_press_event",
 			   GTK_SIGNAL_FUNC(double_click_event), button_ok);
+#endif
 
 	if (Xdialog.interval > 0)
 		Xdialog.timer = gtk_timeout_add(Xdialog.interval, menu_timeout, NULL);
@@ -1935,8 +2105,13 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
 	hbuttonbox = gtk_widget_get_ancestor(filesel->ok_button, gtk_hbutton_box_get_type());
 
 	/* Remove the fileselector buttons IOT put ours in place */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_destroy(GTK_WIDGET(filesel->ok_button));
+	gtk_widget_destroy(GTK_WIDGET(filesel->cancel_button));
+#else
 	gtk_object_destroy(GTK_OBJECT(filesel->ok_button));
 	gtk_object_destroy(GTK_OBJECT(filesel->cancel_button));
+#endif
 
 	/* Setup our own buttons */
 	if (Xdialog.wizard)
@@ -1963,6 +2138,18 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
 	/* Setup callbacks */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
+			   G_CALLBACK(destroy_event), NULL);
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
+			   G_CALLBACK(delete_event), NULL);
+	if (dsel_flag)
+		g_signal_connect(GTK_WIDGET(filesel->ok_button),
+			   "clicked", G_CALLBACK(dirsel_exit), filesel);
+	else
+		g_signal_connect(GTK_WIDGET(filesel->ok_button),
+			   "clicked", G_CALLBACK(filesel_exit), filesel);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "delete_event",
@@ -1973,7 +2160,7 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
 	else
 		gtk_signal_connect(GTK_OBJECT(filesel->ok_button),
 			   "clicked", (GtkSignalFunc) filesel_exit, filesel);
-	
+#endif
 	
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
@@ -2029,9 +2216,15 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	hbuttonbox = gtk_widget_get_ancestor(colorsel->ok_button, gtk_hbutton_box_get_type());
 
 	/* Remove the colour selector buttons IOT put ours in place */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_destroy(GTK_WIDGET(colorsel->ok_button));
+	gtk_widget_destroy(GTK_WIDGET(colorsel->cancel_button));
+	gtk_widget_destroy(GTK_WIDGET(colorsel->help_button));
+#else
 	gtk_object_destroy(GTK_OBJECT(colorsel->ok_button));
 	gtk_object_destroy(GTK_OBJECT(colorsel->cancel_button));
 	gtk_object_destroy(GTK_OBJECT(colorsel->help_button));
+#endif
 
 	/* Setup our own buttons */
 	if (Xdialog.wizard)
@@ -2060,12 +2253,21 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	gtk_color_selection_set_color(GTK_COLOR_SELECTION(colorsel->colorsel), colors);
 
 	/* Setup callbacks */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
+			   G_CALLBACK(destroy_event), NULL);
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
+			   G_CALLBACK(delete_event), NULL);
+	g_signal_connect(GTK_WIDGET(colorsel->ok_button),
+			   "clicked", G_CALLBACK(colorsel_exit), GTK_WIDGET(colorsel->colorsel));
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "delete_event",
 			   GTK_SIGNAL_FUNC(delete_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(colorsel->ok_button),
 			   "clicked", (GtkSignalFunc) colorsel_exit, GTK_OBJECT(colorsel->colorsel));
+#endif
 
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
@@ -2115,9 +2317,15 @@ void create_fontsel(gchar *optarg)
 	hbuttonbox = fontsel->action_area;
 
 	/* Remove the font selector buttons IOT put ours in place */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	gtk_widget_destroy(GTK_WIDGET(fontsel->ok_button));
+	gtk_widget_destroy(GTK_WIDGET(fontsel->cancel_button));
+	gtk_widget_destroy(GTK_WIDGET(fontsel->apply_button));
+#else
 	gtk_object_destroy(GTK_OBJECT(fontsel->ok_button));
 	gtk_object_destroy(GTK_OBJECT(fontsel->cancel_button));
 	gtk_object_destroy(GTK_OBJECT(fontsel->apply_button));
+#endif
 
 	/* Setup our own buttons */
 	if (Xdialog.wizard)
@@ -2144,12 +2352,21 @@ void create_fontsel(gchar *optarg)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
 	/* Setup callbacks */
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
+			   G_CALLBACK(destroy_event), NULL);
+	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
+			   G_CALLBACK(delete_event), NULL);
+	g_signal_connect(GTK_WIDGET(fontsel->ok_button),
+			   "clicked", G_CALLBACK(fontsel_exit), fontsel);
+#else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "delete_event",
 			   GTK_SIGNAL_FUNC(delete_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(fontsel->ok_button),
 			   "clicked", (GtkSignalFunc) fontsel_exit, fontsel);
+#endif
 
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
@@ -2192,11 +2409,19 @@ void create_calendar(gchar *optarg, gint day, gint month, gint year)
 	gtk_calendar_select_day(calendar, day);
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(calendar_exit), NULL);
+	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "day_selected_double_click",
+			   G_CALLBACK(calendar_exit), NULL);
+	g_signal_connect_after(GTK_WIDGET(Xdialog.widget1), "day_selected_double_click",
+			   G_CALLBACK(exit_ok), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(calendar_exit), NULL);
 	gtk_signal_connect(GTK_OBJECT(Xdialog.widget1), "day_selected_double_click",
 			   GTK_SIGNAL_FUNC(calendar_exit), NULL);
 	gtk_signal_connect_after(GTK_OBJECT(Xdialog.widget1), "day_selected_double_click",
 			   GTK_SIGNAL_FUNC(exit_ok), NULL);
+#endif
 
 	if (Xdialog.interval > 0)
 		Xdialog.timer = gtk_timeout_add(Xdialog.interval, calendar_timeout, NULL);
@@ -2231,7 +2456,11 @@ void create_timebox(gchar *optarg, gint hours, gint minutes, gint seconds)
 	Xdialog.widget3 = set_spin_button(hbox, 0, 59, seconds,  2, NULL, FALSE);
 
 	button_ok = set_all_buttons(FALSE, TRUE);
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(timebox_exit), NULL);
+#else
 	gtk_signal_connect(GTK_OBJECT(button_ok), "clicked", GTK_SIGNAL_FUNC(timebox_exit), NULL);
+#endif
 
 	if (Xdialog.interval > 0)
 		Xdialog.timer = gtk_timeout_add(Xdialog.interval, timebox_timeout, NULL);
