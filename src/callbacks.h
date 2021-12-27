@@ -68,17 +68,11 @@ void item_select(GtkWidget *clist, gint row, gint column, GdkEventButton *event,
 
 gboolean print_selection(GtkButton *button, gpointer data);
 
-#if defined(USE_GTK2) || defined(USE_GTK3)
 gboolean print_tree_selection(GtkButton *button, gpointer data);
-#endif
 
 gboolean menu_timeout(gpointer data);
 
 gboolean move_to_row_timeout(gpointer data);
-
-#if 0
-gboolean select_timeout(gpointer data);
-#endif
 
 void cb_selection_changed(GtkWidget *tree);
 
