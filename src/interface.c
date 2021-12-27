@@ -322,9 +322,12 @@ static GtkWidget *set_label(gchar *label_text, gboolean expand)
 {
 	GtkWidget *label;
 	GtkWidget *hbox;
+#if defined(USE_GTK2) || defined(USE_GTK3)
+#else
 	GdkBitmap *mask;
 	GdkColor  transparent;
 	GdkPixmap *pixmap;
+#endif
 	GtkWidget *icon;
 	gchar     text[MAX_LABEL_LENGTH];
 	int icon_width = 0;
@@ -332,6 +335,14 @@ static GtkWidget *set_label(gchar *label_text, gboolean expand)
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(Xdialog.vbox, hbox, expand, TRUE, ymult/3);
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+	if (Xdialog.icon) {
+		icon = GTK_WIDGET(gtk_image_new_from_file(Xdialog.icon_file));
+		gtk_box_pack_start(GTK_BOX(hbox), icon, FALSE, FALSE, 2);
+		gtk_widget_show(icon);		
+		icon_width = gdk_pixbuf_get_width(gtk_image_get_pixbuf(GTK_IMAGE(icon))) + 4;
+	}
+#else
 	if (Xdialog.icon) {
 		pixmap = gdk_pixmap_create_from_xpm(Xdialog.window->window,
 						    &mask, &transparent,
@@ -345,6 +356,7 @@ static GtkWidget *set_label(gchar *label_text, gboolean expand)
 			icon_width = icon->requisition.width + 4;
 		}
 	}
+#endif
 
 	trim_string(label_text, text, MAX_LABEL_LENGTH);
 
