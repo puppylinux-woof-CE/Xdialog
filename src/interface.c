@@ -18,6 +18,8 @@
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
+#include <pango/pango.h>
+#include <pango/pangoft2.h>
 
 #include "interface.h"
 #include "callbacks.h"
@@ -65,12 +67,37 @@ static void parse_rc_file(void)
  * font and the character width is therefore an averaged value).
  */
 
+#if defined(USE_GTK2) || defined(USE_GTK3)
+static void jb_get_metrics(GtkWidget *window, PangoFontDescription *font, gint *xmult, gint *ymult) {
+	PangoContext *pc = gtk_widget_get_pango_context(window);
+	PangoFontMap *fm = pango_ft2_font_map_new();
+	PangoFont *pfont = pango_font_map_load_font (fm, pc, font);
+	PangoFontMetrics *metrics = pango_font_get_metrics (pfont, NULL);
+	*xmult = pango_font_metrics_get_approximate_digit_width(metrics);
+	*ymult = pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics) + 2;
+	*xmult /= PANGO_SCALE;
+	*ymult /= PANGO_SCALE;
+	if (metrics) pango_font_metrics_unref(metrics);
+	if (pfont) g_object_unref(pfont);
+	if (fm) g_object_unref(fm);
+}
+#else
+static void jb_get_metrics(GtkWindow *window, GdkFont *font, gint *xmult, gint *ymult) {
+	gint width, ascent, descent, lbearing, rbearing;
+
+	gdk_string_extents(font, ALPHANUM_CHARS, &lbearing,
+			   &rbearing, &width, &ascent, &descent);
+	*xmult = width / 62;		/* 62 = strlen(ALPHANUM_CHARS) */
+	*ymult = ascent + descent + 2;	/*  2 = spacing pixel lines */
+}
+#endif
+
 static void font_init(void)
 {
 	GtkWidget *window;
 	GtkStyle  *style;
-	GdkFont *font;
-	gint width, ascent, descent, lbearing, rbearing;
+
+	/* load fixed font */
 #if defined(USE_GTK2) || defined(USE_GTK3)
 	/* fixed font support by 01micko */
 	fixed_font = pango_font_description_new ();
@@ -79,48 +106,43 @@ static void font_init(void)
 	pango_font_description_set_size (fixed_font, 10*PANGO_SCALE);
 #else
 	fixed_font = gdk_font_load(FIXED_FONT);
+#endif
 
-	if (fixed_font != NULL) {
-		gdk_string_extents(fixed_font, ALPHANUM_CHARS, &lbearing,
-				   &rbearing, &width, &ascent, &descent);
-		ffxmult = width / 62;			/* 62 = strlen(ALPHANUM_CHARS) */
-		ffymult = ascent + descent + 2;		/*  2 = spacing pixel lines */
-	}
-#endif
-	if (dialog_compat) {
-		xmult = ffxmult;
-		ymult = ffymult;
-	} else {
-		/* We must open and realize a window IOT get the GTK+ theme font... */
-		parse_rc_file();
-		window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		gtk_widget_realize(window);
-		style = window->style;
-		if (style != NULL) {
-			/* For proportionnal fonts, we use the average character width... */
+	/* We must open and realize a window IOT get the GTK+ theme font... */
+	parse_rc_file();
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_widget_realize(window);
+	style = gtk_widget_get_style(window);
+	if (style != NULL) {
+		
+		/* compute metrics for fixed font */
+		jb_get_metrics(window, fixed_font, &ffxmult, &ffymult);
+
+		/* computer metrics for default font */
+		if (dialog_compat) {
+			xmult = ffxmult;
+			ymult = ffymult;
+
+		} else {
 #if defined(USE_GTK2) || defined(USE_GTK3)
-			font = gtk_style_get_font(style);
+			jb_get_metrics(window, style->font_desc, &xmult, &ymult);
 #else
-			font = style->font;
-#endif
-			gdk_string_extents(font, ALPHANUM_CHARS, &lbearing,
-					   &rbearing, &width, &ascent, &descent);
-			xmult = width / 62;		/* 62 = strlen(ALPHANUM_CHARS) */
-			ymult = ascent + descent + 2;	/*  2 = spacing pixel lines */
+			jb_get_metrics(window, style->font, &xmult, &ymult);
+#endif	
 		}
-		gtk_widget_destroy(window);
 	}
+	gtk_widget_destroy(window);
+	//g_print("%d %d\n",xmult,ymult);
 }
 
 /* Custom text wrapping (the GTK+ one is buggy) */
-
 static void wrap_text(gchar *str, gint reserved_width)
 {
 	gint max_line_width, n = 0;
 	gchar *p = str, *last_space = NULL;
 	gchar tmp[MAX_LABEL_LENGTH];
 #if defined(USE_GTK2) || defined(USE_GTK3)
-	GdkFont *current_font = gtk_style_get_font(Xdialog.window->style);
+	//GdkFont *current_font = gtk_style_get_font(Xdialog.window->style);
 #else
 	GdkFont *current_font = Xdialog.window->style->font;
 #endif
@@ -139,7 +161,12 @@ static void wrap_text(gchar *str, gint reserved_width)
 		} else {
 			tmp[n++] = *p;
 			tmp[n] = 0;
+#if defined(USE_GTK2) || defined(USE_GTK3)
+			if (n*xmult < max_line_width) {
+			//if (gdk_string_width(current_font, tmp) < max_line_width) {
+#else
 			if (gdk_string_width(current_font, tmp) < max_line_width) {
+#endif
 				if (*p == ' ')
 					last_space = p;
 			} else {
@@ -148,8 +175,9 @@ static void wrap_text(gchar *str, gint reserved_width)
 					p = last_space;
 					n = 0;
 					last_space = NULL;
-				} else if (*p == ' ')
+				} else if (*p == ' ') {
 					last_space = p;
+				}
 			}
 		}
 	} while (++p < str + strlen(str));
