@@ -1398,7 +1398,7 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 
 #if defined(USE_GTK2) || defined(USE_GTK3)
 	combo = gtk_combo_box_entry_new_text(); 
-	Xdialog.widget1 = GTK_WIDGET (GTK_BIN (combo)->child);
+	Xdialog.widget1 = GTK_WIDGET(gtk_bin_get_child (GTK_BIN (combo)));
 #else
 	combo = gtk_combo_new(); 
 	Xdialog.widget1 = GTK_COMBO(combo)->entry;
@@ -2137,8 +2137,8 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
            the auto-completed filename. Finally, disable the file operation
            buttons to keep only the "make new directory" one. */
 	if (dsel_flag) {
-		gtk_widget_hide_all(GTK_WIDGET(GTK_WIDGET(filesel->file_list)->parent));
-		gtk_widget_hide(GTK_WIDGET(filesel->selection_entry));
+		// TODO gtk_widget_hide_all(GTK_WIDGET(GTK_WIDGET(filesel->file_list)->parent));
+		// TODO gtk_widget_hide(GTK_WIDGET(filesel->selection_entry));
 		gtk_file_selection_set_filename(filesel, "");
 		gtk_widget_set_sensitive(GTK_WIDGET(filesel->fileop_del_file), FALSE);
 		gtk_widget_set_sensitive(GTK_WIDGET(filesel->fileop_ren_file), FALSE);
@@ -2245,7 +2245,8 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	Xdialog.window = gtk_color_selection_dialog_new(Xdialog.title);
 	colorsel = GTK_COLOR_SELECTION_DIALOG(Xdialog.window);
 #if defined(USE_GTK2) || defined(USE_GTK3)
-	Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(colorsel->colorsel, gtk_box_get_type()));
+	//Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(colorsel->colorsel, gtk_box_get_type()));
+	Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(gtk_color_selection_dialog_get_color_selection (colorsel), gtk_box_get_type()));
 #else
 	Xdialog.vbox = GTK_BOX(colorsel->main_vbox);
 #endif
@@ -2269,13 +2270,13 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	set_window_size_and_placement();
 
 	/* Find the existing hbuttonbox pointer */
-	hbuttonbox = gtk_widget_get_ancestor(colorsel->ok_button, gtk_hbutton_box_get_type());
+// TODO	hbuttonbox = gtk_widget_get_ancestor(colorsel->ok_button, gtk_hbutton_box_get_type());
 
 	/* Remove the colour selector buttons IOT put ours in place */
 #if defined(USE_GTK2) || defined(USE_GTK3)
-	gtk_widget_destroy(GTK_WIDGET(colorsel->ok_button));
-	gtk_widget_destroy(GTK_WIDGET(colorsel->cancel_button));
-	gtk_widget_destroy(GTK_WIDGET(colorsel->help_button));
+//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->ok_button));
+//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->cancel_button));
+//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->help_button));
 #else
 	gtk_object_destroy(GTK_OBJECT(colorsel->ok_button));
 	gtk_object_destroy(GTK_OBJECT(colorsel->cancel_button));
@@ -2289,24 +2290,24 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 		button = set_button(OK, hbuttonbox, 0, flag = !Xdialog.default_no);
 		if (flag)
 			gtk_widget_grab_focus(button);
-		colorsel->ok_button = button;
+//TODO		colorsel->ok_button = button;
 	}
 	if (Xdialog.cancel_button) {
 		button = set_button(CANCEL, hbuttonbox, 1,
 				    flag = Xdialog.default_no && !Xdialog.wizard);
 		if (flag)
 			gtk_widget_grab_focus(button);
-		colorsel->cancel_button = button;
+// TODO		colorsel->cancel_button = button;
 	}
 	if (Xdialog.wizard) {
 		button = set_button(NEXT, hbuttonbox, 0, TRUE);
 		gtk_widget_grab_focus(button);
-		colorsel->ok_button = button;
+// TODO		colorsel->ok_button = button;
 	}
 	if (Xdialog.help)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
-	gtk_color_selection_set_color(GTK_COLOR_SELECTION(colorsel->colorsel), colors);
+// TODO	gtk_color_selection_set_color(GTK_COLOR_SELECTION(colorsel->colorsel), colors);
 
 	/* Setup callbacks */
 #if defined(USE_GTK2) || defined(USE_GTK3)
@@ -2314,8 +2315,8 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 			   G_CALLBACK(destroy_event), NULL);
 	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
 			   G_CALLBACK(delete_event), NULL);
-	g_signal_connect(GTK_WIDGET(colorsel->ok_button),
-			   "clicked", G_CALLBACK(colorsel_exit), GTK_WIDGET(colorsel->colorsel));
+// TODO	g_signal_connect(GTK_WIDGET(colorsel->ok_button),
+// TODO			   "clicked", G_CALLBACK(colorsel_exit), GTK_WIDGET(colorsel->colorsel));
 #else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);
@@ -2350,18 +2351,18 @@ void create_fontsel(gchar *optarg)
 	/* Create a font selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_font_selection_dialog_new(Xdialog.title);
 	fontsel = GTK_FONT_SELECTION_DIALOG(Xdialog.window);
-	Xdialog.vbox = GTK_BOX(fontsel->main_vbox);
+// TODO	Xdialog.vbox = GTK_BOX(fontsel->main_vbox);
 
 	/* Set the backtitle */
 	set_backtitle(FALSE);
 
 	/* Set the default font name */
-	gtk_font_selection_set_font_name(GTK_FONT_SELECTION(fontsel->fontsel), optarg);
-	gtk_font_selection_set_preview_text(GTK_FONT_SELECTION(fontsel->fontsel),
-                                            "abcdefghijklmnopqrstuvwxyz 0123456789");
+// TODO	gtk_font_selection_set_font_name(GTK_FONT_SELECTION(fontsel->fontsel), optarg);
+// TODO	gtk_font_selection_set_preview_text(GTK_FONT_SELECTION(fontsel->fontsel),
+// TODO                                            "abcdefghijklmnopqrstuvwxyz 0123456789");
 
 	/* If requested, add a check button into the fontsel action area */
-	set_check_button(fontsel->action_area);
+// TODO	set_check_button(fontsel->action_area);
 
 	/* We must realize the widget before moving it and creating the buttons pixmaps */
 	gtk_widget_realize(Xdialog.window);
@@ -2370,13 +2371,13 @@ void create_fontsel(gchar *optarg)
 	set_window_size_and_placement();
 
 	/* Find the existing hbuttonbox pointer */
-	hbuttonbox = fontsel->action_area;
+// TODO	hbuttonbox = fontsel->action_area;
 
 	/* Remove the font selector buttons IOT put ours in place */
 #if defined(USE_GTK2) || defined(USE_GTK3)
-	gtk_widget_destroy(GTK_WIDGET(fontsel->ok_button));
-	gtk_widget_destroy(GTK_WIDGET(fontsel->cancel_button));
-	gtk_widget_destroy(GTK_WIDGET(fontsel->apply_button));
+// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->ok_button));
+// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->cancel_button));
+// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->apply_button));
 #else
 	gtk_object_destroy(GTK_OBJECT(fontsel->ok_button));
 	gtk_object_destroy(GTK_OBJECT(fontsel->cancel_button));
@@ -2390,19 +2391,19 @@ void create_fontsel(gchar *optarg)
 		button = set_button(OK, hbuttonbox, 0, flag = !Xdialog.default_no);
 		if (flag)
 			gtk_widget_grab_focus(button);
-		fontsel->ok_button = button;
+// TODO		fontsel->ok_button = button;
 	}
 	if (Xdialog.cancel_button) {
 		button = set_button(CANCEL, hbuttonbox, 1,
 				    flag = Xdialog.default_no && !Xdialog.wizard);
 		if (flag)
 			gtk_widget_grab_focus(button);
-		fontsel->cancel_button = button;
+// TODO		fontsel->cancel_button = button;
 	}
 	if (Xdialog.wizard) {
 		button = set_button(NEXT, hbuttonbox, 0, TRUE);
 		gtk_widget_grab_focus(button);
-		fontsel->ok_button = button;
+// TODO		fontsel->ok_button = button;
 	}
 	if (Xdialog.help)
 		set_button(HELP, hbuttonbox, 2, FALSE);
@@ -2413,8 +2414,8 @@ void create_fontsel(gchar *optarg)
 			   G_CALLBACK(destroy_event), NULL);
 	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
 			   G_CALLBACK(delete_event), NULL);
-	g_signal_connect(GTK_WIDGET(fontsel->ok_button),
-			   "clicked", G_CALLBACK(fontsel_exit), fontsel);
+// TODO	g_signal_connect(GTK_WIDGET(fontsel->ok_button),
+// TODO			   "clicked", G_CALLBACK(fontsel_exit), fontsel);
 #else
 	gtk_signal_connect(GTK_OBJECT(Xdialog.window), "destroy",
 			   GTK_SIGNAL_FUNC(destroy_event), NULL);

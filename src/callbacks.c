@@ -132,7 +132,7 @@ gboolean exit_previous(gpointer object, gpointer data)
 
 gboolean checked(GtkWidget *button, gpointer data)
 {
-	Xdialog.checked = GTK_TOGGLE_BUTTON(button)->active;
+// TODO	Xdialog.checked = GTK_TOGGLE_BUTTON(button)->active;
 	return TRUE;
 }
 
@@ -245,8 +245,8 @@ gboolean gauge_timeout(gpointer data)
 	 	 * progress bar value... */
 		new_val = (gfloat) atoi(temp);
 		adj = GTK_PROGRESS(Xdialog.widget1)->adjustment;
-		if ((new_val > adj->upper) || (new_val < adj->lower))
-			return exit_ok(NULL, NULL);
+// TODO		if ((new_val > adj->upper) || (new_val < adj->lower))
+// TODO			return exit_ok(NULL, NULL);
 		/* Set the new value */
 		gtk_progress_set_value(GTK_PROGRESS(Xdialog.widget1), new_val);
 	} else {
@@ -316,11 +316,11 @@ gboolean progress_timeout(gpointer data)
 		new_val = (gfloat) atoi(temp);
 	} else {
 		/* Increment the number of "dots" */
-		new_val = adj->value + 1;
+// TODO		new_val = adj->value + 1;
 	}
 
-	if ((new_val > adj->upper) || (new_val < adj->lower))
-		return exit_ok(NULL, NULL);
+// TODO	if ((new_val > adj->upper) || (new_val < adj->lower))
+// TODO		return exit_ok(NULL, NULL);
 	/* Set the new value */
 	gtk_progress_set_value(GTK_PROGRESS(Xdialog.widget1), new_val);
 
@@ -793,16 +793,16 @@ gboolean rangebox_exit(GtkButton *button, gpointer data)
 	GtkAdjustment *adj;
 
 	adj = GTK_ADJUSTMENT((GtkWidget *) Xdialog.widget1);
-	fprintf(Xdialog.output, "%d", (gint) adj->value);
+// TODO	fprintf(Xdialog.output, "%d", (gint) adj->value);
 	if (Xdialog.widget2 != NULL) {
 		adj = GTK_ADJUSTMENT((GtkWidget *) Xdialog.widget2);
-		fprintf(Xdialog.output, "%s%d", Xdialog.separator,
-			(gint) adj->value);
+// TODO		fprintf(Xdialog.output, "%s%d", Xdialog.separator,
+// TODO			(gint) adj->value);
 	}
 	if (Xdialog.widget3 != NULL) {
 		adj = GTK_ADJUSTMENT((GtkWidget *) Xdialog.widget3);
-		fprintf(Xdialog.output, "%s%d", Xdialog.separator,
-			(gint) adj->value);
+// TODO		fprintf(Xdialog.output, "%s%d", Xdialog.separator,
+// TODO			(gint) adj->value);
 	}
 	fprintf(Xdialog.output, "\n");
 
@@ -860,10 +860,10 @@ gint double_click_event(GtkWidget *object, GdkEventButton *event,
 
 void item_toggle(GtkWidget *item, int i)
 {
-	if (GTK_TOGGLE_BUTTON(item)->active) {
-		Xdialog.array[i].state = 1;
-	} else
-		Xdialog.array[i].state = 0;
+// TODO	if (GTK_TOGGLE_BUTTON(item)->active) {
+// TODO		Xdialog.array[i].state = 1;
+// TODO	} else
+// TODO		Xdialog.array[i].state = 0;
 }
 
 gboolean print_items(GtkButton *button, gpointer data)
