@@ -2,6 +2,9 @@
  * GTK+ interface functions for Xdialog.
  */
 
+// TODO: needs upgrade: fontsel, filesel (fselect), dirsel (dselect)
+//       buildlist (gtk_list), logbox (gtk_clist), progressbox
+
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -1727,7 +1730,7 @@ void create_filesel(gchar *optarg, gboolean dsel_flag)
 }
 
 
-void create_colorsel(gchar *optarg, gdouble *colors)
+void create_colorsel(gchar *optarg, const GdkColor *colors)
 {
 	GtkColorSelectionDialog *colorsel;
 	GtkWidget *box;
@@ -1765,12 +1768,16 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 	set_window_size_and_placement();
 
 	/* Find the existing hbuttonbox pointer */
-// TODO	hbuttonbox = gtk_widget_get_ancestor(colorsel->ok_button, gtk_hbutton_box_get_type());
+	GtkWidget *ok_button, *cancel_button, *help_button;
+	g_object_get(colorsel,"ok-button",&ok_button,NULL);
+	g_object_get(colorsel,"cancel-button",&cancel_button,NULL);
+	g_object_get(colorsel,"help-button",&help_button,NULL);
+	hbuttonbox = gtk_widget_get_ancestor(ok_button, gtk_hbutton_box_get_type());
 
 	/* Remove the colour selector buttons IOT put ours in place */
-//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->ok_button));
-//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->cancel_button));
-//TODO	gtk_widget_destroy(GTK_WIDGET(colorsel->help_button));
+	gtk_widget_destroy(ok_button);
+	gtk_widget_destroy(cancel_button);
+	gtk_widget_destroy(help_button);
 
 	/* Setup our own buttons */
 	if (Xdialog.wizard)
@@ -1779,32 +1786,35 @@ void create_colorsel(gchar *optarg, gdouble *colors)
 		button = set_button(OK, hbuttonbox, 0, flag = !Xdialog.default_no);
 		if (flag)
 			gtk_widget_grab_focus(button);
-//TODO		colorsel->ok_button = button;
+		ok_button = button;
+		g_object_set(colorsel, "ok-button", button, NULL);
 	}
 	if (Xdialog.cancel_button) {
 		button = set_button(CANCEL, hbuttonbox, 1,
 				    flag = Xdialog.default_no && !Xdialog.wizard);
 		if (flag)
 			gtk_widget_grab_focus(button);
-// TODO		colorsel->cancel_button = button;
+		cancel_button = button;	
+		g_object_set(colorsel, "cancel-button", button, NULL);
 	}
 	if (Xdialog.wizard) {
 		button = set_button(NEXT, hbuttonbox, 0, TRUE);
 		gtk_widget_grab_focus(button);
-// TODO		colorsel->ok_button = button;
+		ok_button = button;
+		g_object_set(colorsel, "ok-button", button, NULL);
 	}
 	if (Xdialog.help)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
-// TODO	gtk_color_selection_set_color(GTK_COLOR_SELECTION(colorsel->colorsel), colors);
+	gtk_color_selection_set_current_color(GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection (colorsel)), colors);
 
 	/* Setup callbacks */
 	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
 			   G_CALLBACK(destroy_event), NULL);
 	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
 			   G_CALLBACK(delete_event), NULL);
-// TODO	g_signal_connect(GTK_WIDGET(colorsel->ok_button),
-// TODO			   "clicked", G_CALLBACK(colorsel_exit), GTK_WIDGET(colorsel->colorsel));
+	g_signal_connect(GTK_WIDGET(ok_button),
+			   "clicked", G_CALLBACK(colorsel_exit), gtk_color_selection_dialog_get_color_selection (colorsel));
 
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)

@@ -229,7 +229,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size);
 
 void create_filesel(gchar *optarg, gboolean dsel_flag);
 
-void create_colorsel(gchar *optarg, gdouble *colors);
+void create_colorsel(gchar *optarg, const GdkColor *colors);
 
 void create_fontsel(gchar *optarg);
 
