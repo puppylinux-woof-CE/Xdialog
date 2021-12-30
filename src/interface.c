@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: fontsel, filesel (fselect), dirsel (dselect)
+// TODO: needs upgrade: filesel (fselect), dirsel (dselect)
 //       buildlist (gtk_list), logbox (gtk_clist), progressbox
 
 #ifdef HAVE_CONFIG_H
@@ -1831,8 +1831,6 @@ void create_fontsel(gchar *optarg)
 {
 	GtkFontSelectionDialog *fontsel;
 	GtkWidget *hbuttonbox;
-	GtkWidget *button;
-	gboolean flag;
 
 	font_init();
 
@@ -1841,18 +1839,18 @@ void create_fontsel(gchar *optarg)
 	/* Create a font selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_font_selection_dialog_new(Xdialog.title);
 	fontsel = GTK_FONT_SELECTION_DIALOG(Xdialog.window);
-// TODO	Xdialog.vbox = GTK_BOX(fontsel->main_vbox);
+	Xdialog.vbox = GTK_BOX( gtk_dialog_get_content_area (GTK_DIALOG (fontsel)) );
 
 	/* Set the backtitle */
 	set_backtitle(FALSE);
 
 	/* Set the default font name */
-// TODO	gtk_font_selection_set_font_name(GTK_FONT_SELECTION(fontsel->fontsel), optarg);
-// TODO	gtk_font_selection_set_preview_text(GTK_FONT_SELECTION(fontsel->fontsel),
-// TODO                                            "abcdefghijklmnopqrstuvwxyz 0123456789");
+	gtk_font_selection_set_font_name(GTK_FONT_SELECTION(gtk_font_selection_dialog_get_font_selection (fontsel)), optarg);
+	gtk_font_selection_set_preview_text(GTK_FONT_SELECTION(gtk_font_selection_dialog_get_font_selection (fontsel)),
+                                            "abcdefghijklmnopqrstuvwxyz 0123456789");
 
 	/* If requested, add a check button into the fontsel action area */
-// TODO	set_check_button(fontsel->action_area);
+	set_check_button(gtk_dialog_get_action_area (GTK_DIALOG(fontsel)));
 
 	/* We must realize the widget before moving it and creating the buttons pixmaps */
 	gtk_widget_realize(Xdialog.window);
@@ -1860,45 +1858,58 @@ void create_fontsel(gchar *optarg)
 	/* Set the window size and placement policy */
 	set_window_size_and_placement();
 
+	/* Get the existing buttons */
+	GtkWidget *ok_button, *cancel_button, *prev_button = NULL;
+	ok_button = gtk_font_selection_dialog_get_ok_button(fontsel);
+	cancel_button = gtk_font_selection_dialog_get_cancel_button(fontsel);
+
 	/* Find the existing hbuttonbox pointer */
-// TODO	hbuttonbox = fontsel->action_area;
+	hbuttonbox = gtk_dialog_get_action_area (GTK_DIALOG(fontsel));
 
-	/* Remove the font selector buttons IOT put ours in place */
-// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->ok_button));
-// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->cancel_button));
-// TODO	gtk_widget_destroy(GTK_WIDGET(fontsel->apply_button));
+	/* Configure the font selector buttons for our use */
+	if (Xdialog.ok_label && *Xdialog.ok_label) {
+		gtk_button_set_label (GTK_BUTTON (ok_button), Xdialog.ok_label);
+ 	}
+	if (Xdialog.cancel_label && *Xdialog.cancel_label) {
+		gtk_button_set_label (GTK_BUTTON (cancel_button), Xdialog.cancel_label);
+ 	}
+ 	if (Xdialog.wizard) {
+		// cancel becomes previous
+		// ok becomes cancel
+		// new button becoms next (=ok button)
+		prev_button = cancel_button;
+		cancel_button = ok_button;
+		ok_button = set_button(NEXT , hbuttonbox, -1, FALSE);
 
-	/* Setup our own buttons */
-	if (Xdialog.wizard)
-		set_button(PREVIOUS , hbuttonbox, 3, FALSE);
-	else {
-		button = set_button(OK, hbuttonbox, 0, flag = !Xdialog.default_no);
-		if (flag)
-			gtk_widget_grab_focus(button);
-// TODO		fontsel->ok_button = button;
+		// adjust labels
+		gtk_button_set_label (GTK_BUTTON (prev_button), PREVIOUS);
+		gtk_button_set_image (GTK_BUTTON (prev_button), gtk_image_new_from_stock("gtk-go-back", GTK_ICON_SIZE_BUTTON));
+		gtk_button_set_label (GTK_BUTTON (cancel_button), CANCEL);
+		gtk_button_set_image (GTK_BUTTON (cancel_button), gtk_image_new_from_stock("gtk-cancel", GTK_ICON_SIZE_BUTTON));
 	}
-	if (Xdialog.cancel_button) {
-		button = set_button(CANCEL, hbuttonbox, 1,
-				    flag = Xdialog.default_no && !Xdialog.wizard);
-		if (flag)
-			gtk_widget_grab_focus(button);
-// TODO		fontsel->cancel_button = button;
-	}
-	if (Xdialog.wizard) {
-		button = set_button(NEXT, hbuttonbox, 0, TRUE);
-		gtk_widget_grab_focus(button);
-// TODO		fontsel->ok_button = button;
-	}
-	if (Xdialog.help)
+ 	if (Xdialog.help)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
+	/* Default button */
+
+	if (Xdialog.default_no && ! Xdialog.wizard)
+		gtk_widget_grab_focus(cancel_button);
+	else
+		gtk_widget_grab_focus(ok_button);
+
 	/* Setup callbacks */
-	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
+	g_signal_connect(G_OBJECT(Xdialog.window), "destroy",
 			   G_CALLBACK(destroy_event), NULL);
-	g_signal_connect(GTK_WIDGET(Xdialog.window), "delete_event",
+	g_signal_connect(G_OBJECT(Xdialog.window), "delete_event",
 			   G_CALLBACK(delete_event), NULL);
-// TODO	g_signal_connect(GTK_WIDGET(fontsel->ok_button),
-// TODO			   "clicked", G_CALLBACK(fontsel_exit), fontsel);
+	g_signal_connect(G_OBJECT(ok_button),
+			   "clicked", G_CALLBACK(fontsel_exit), fontsel);
+	g_signal_connect(G_OBJECT(cancel_button),
+			   "clicked", G_CALLBACK(exit_cancel), fontsel);
+	if (prev_button) {
+		g_signal_connect(G_OBJECT(prev_button),
+			   "clicked", G_CALLBACK(exit_previous), fontsel);
+	}
 
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
