@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: logbox (gtk_clist), progressbox
+// TODO: needs upgrade: menubox, logbox (gtk_clist), progressbox/gauge, combobox, itemlist, 
 
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
@@ -891,7 +891,7 @@ void create_tailbox(gchar *optarg)
 	if (Xdialog.buttons)
 		set_all_buttons(TRUE, Xdialog.ok_button);
 
-	Xdialog.timer = g_timeout_add(10, (GtkFunction) tailbox_timeout, NULL);
+	Xdialog.timer = g_timeout_add(10, G_SOURCE_FUNC(tailbox_timeout), NULL);
 
 	set_timeout();
 }
@@ -955,7 +955,7 @@ void create_logbox(gchar *optarg)
 	if (Xdialog.buttons)
 		set_all_buttons(FALSE, Xdialog.ok_button);
 
-	Xdialog.timer = g_timeout_add(10, (GtkFunction) logbox_timeout, NULL);
+	Xdialog.timer = g_timeout_add(10, G_SOURCE_FUNC(logbox_timeout), NULL);
 
 	set_timeout();
 }
