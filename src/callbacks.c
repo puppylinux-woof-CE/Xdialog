@@ -40,11 +40,11 @@ gboolean delete_event(gpointer object, GdkEventAny *event, gpointer data)
 gboolean destroy_event(gpointer object, GdkEventAny *event, gpointer data)
 {
 	if (Xdialog.timer != 0) {
-		gtk_timeout_remove(Xdialog.timer);
+		g_source_remove(Xdialog.timer);
 		Xdialog.timer = 0;
 	}
 	if (Xdialog.timer2 != 0) {
-		gtk_timeout_remove(Xdialog.timer2);
+		g_source_remove(Xdialog.timer2);
 		Xdialog.timer2 = 0;
 	}
 	gtk_main_quit();
