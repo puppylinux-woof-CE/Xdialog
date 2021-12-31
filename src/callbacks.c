@@ -961,16 +961,22 @@ gboolean buildlist_timeout(gpointer data)
 /* fselect callback */
 gboolean filesel_exit(GtkWidget *filesel, gpointer client_data)
 {
-	fprintf(Xdialog.output, "%s\n",
-		gtk_file_selection_get_filename(GTK_FILE_SELECTION(client_data)));
+	gchar *fn = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(client_data));
+	if (fn) {
+		fprintf(Xdialog.output, "%s\n", fn);
+		g_free(fn);		
+	}
 	return exit_ok(NULL, NULL);
 }
 
 /* dselect callback */
 gboolean dirsel_exit(GtkWidget *filesel, gpointer client_data)
 {
-	fprintf(Xdialog.output, "%s/\n",
-		gtk_file_selection_get_filename(GTK_FILE_SELECTION(client_data)));
+	gchar *dir = gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER(client_data));
+	if (dir) {
+		fprintf(Xdialog.output, "%s/\n", dir);
+		g_free(dir);
+	}
 	return exit_ok(NULL, NULL);
 }
 
