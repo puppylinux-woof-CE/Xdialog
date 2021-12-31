@@ -1680,7 +1680,6 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 }
 
 #ifdef USE_GTK2
-/* TODO: implement tooltips support */
 void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 {
 	GtkWidget *scrolled_window;
@@ -1690,13 +1689,9 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	GtkCellRenderer *renderer;
 	GtkTreeIter tree_iter[MAX_TREE_DEPTH];
 	GtkTreeSelection *select;
-/*	GtkTooltips *tooltips = NULL; */
 	int depth = 0;
 	int i;
 	int params = 4 + Xdialog.tips;
-
-/*	if (Xdialog.tips == 1)
-		tooltips = gtk_tooltips_new(); */
 
 	Xdialog_array(list_size);
 
@@ -1706,7 +1701,7 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	set_label(optarg, FALSE);
 
 	/* Fill the store with the data */
-	store = gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	store = gtk_tree_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	for (i = 0 ; i < list_size ; i++) {
 		strcpysafe(Xdialog.array[i].tag, options[params*i], MAX_ITEM_LENGTH);
 		strcpysafe(Xdialog.array[i].name, options[params*i+1], MAX_ITEM_LENGTH);
@@ -1724,13 +1719,23 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 
 		if (depth == 0) {
 			gtk_tree_store_append(store, &tree_iter[0], NULL);
-			gtk_tree_store_set(store, &tree_iter[0], 0,
-				Xdialog.array[i].name, 1, Xdialog.array[i].tag, -1);
+			if (Xdialog.tips == 1 && strlen(options[params*i+4]) > 0)
+				gtk_tree_store_set(store, &tree_iter[0],
+					0, Xdialog.array[i].name, 1, Xdialog.array[i].tag,
+					2, (gchar *) options[params*i+4], -1);
+			else
+				gtk_tree_store_set(store, &tree_iter[0],
+					0, Xdialog.array[i].name, 1, Xdialog.array[i].tag, -1);
 		} else {
 			gtk_tree_store_append(store, &tree_iter[depth],
 				&tree_iter[depth-1]);
-			gtk_tree_store_set(store, &tree_iter[depth], 0,
-				Xdialog.array[i].name, 1, Xdialog.array[i].tag, -1);
+			if (Xdialog.tips == 1 && strlen(options[params*i+4]) > 0)
+				gtk_tree_store_set(store, &tree_iter[depth],
+					0, Xdialog.array[i].name, 1, Xdialog.array[i].tag,
+					2, (gchar *) options[params*i+4], -1);
+			else
+				gtk_tree_store_set(store, &tree_iter[depth],
+					0, Xdialog.array[i].name, 1, Xdialog.array[i].tag, -1);
 		}
 	}     
 
@@ -1746,7 +1751,9 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 
 	gtk_tree_view_append_column(GTK_TREE_VIEW(Xdialog.widget1), column);
 
-	gtk_widget_show(Xdialog.widget1);
+	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (Xdialog.widget1), FALSE);	
+	if (Xdialog.tips==1) gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (Xdialog.widget1), 2);
+	gtk_widget_show(Xdialog.widget1);	
 	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), Xdialog.widget1);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget1);
 
