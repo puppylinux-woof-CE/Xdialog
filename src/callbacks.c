@@ -221,8 +221,7 @@ gboolean infobox_timeout(gpointer data)
 
 gboolean gauge_timeout(gpointer data)
 {
-	gfloat new_val;
-	GtkAdjustment *adj;
+	gdouble new_val;
 	char temp[256];
 	int ret;
 
@@ -243,12 +242,17 @@ gboolean gauge_timeout(gpointer data)
 	if (!Xdialog.new_label && strcmp(temp, "XXX")) {
 		/* Try to convert the string into an integer for use as the new
 	 	 * progress bar value... */
-		new_val = (gfloat) atoi(temp);
-		adj = GTK_PROGRESS(Xdialog.widget1)->adjustment;
-		if ((new_val > gtk_adjustment_get_upper(adj)) || (new_val < gtk_adjustment_get_lower(adj)) )
+		new_val = (gdouble) atoi(temp);
+		char txt[20];
+		snprintf(txt, sizeof(txt), "%g%%", new_val); // 50%
+		gtk_progress_bar_set_text (GTK_PROGRESS_BAR (Xdialog.widget1), txt);
+		new_val = new_val / 100;
+		//printf ("x: %g\n", new_val);
+		if (new_val < 0.0 || new_val > 1.0) {
 			return exit_ok(NULL, NULL);
+		}
 		/* Set the new value */
-		gtk_progress_set_value(GTK_PROGRESS(Xdialog.widget1), new_val);
+		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (Xdialog.widget1), new_val);
 	} else {
 		if (strcmp(temp, "XXX") == 0) {
 			/* If this is a new label delimiter, then check to see if it's the

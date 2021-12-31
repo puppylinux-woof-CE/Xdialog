@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: menubox, logbox (gtk_clist), progressbox/gauge, combobox, itemlist, 
+// TODO: needs upgrade: menubox, logbox (gtk_clist), progressbox, combobox, itemlist, 
 
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
@@ -737,10 +737,8 @@ void create_infobox(gchar *optarg, gint timeout)
 
 void create_gauge(gchar *optarg, gint percent)
 {
-	GtkWidget *align;
-	GtkProgress *pbar;
-	GtkAdjustment *adj;
-	int value;
+	gdouble value;
+	GtkWidget * hbox;
 
 	if (percent < 0)
 		value = 0;
@@ -753,29 +751,25 @@ void create_gauge(gchar *optarg, gint percent)
 
 	set_backtitle(TRUE);
 	Xdialog.widget2 = set_label(optarg, TRUE);
-
-	align = gtk_alignment_new(0.5, 0.5, 0.8, 0);
-	gtk_box_pack_start(Xdialog.vbox, align, FALSE, FALSE, ymult/2);
-	gtk_widget_show(align);
-
-	/* Create an Adjusment object to hold the range of the progress bar */
-	adj = GTK_ADJUSTMENT(gtk_adjustment_new(0, 0, 100, 0, 0, 0));
+#if defined(USE_GTK3)
+	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+#else
+	hbox = gtk_hbox_new (FALSE, 0);
+#endif
+	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 0);
+	gtk_widget_show(hbox);
 
 	/* Set up the progress bar */
-	Xdialog.widget1 = gtk_progress_bar_new_with_adjustment(adj);
-	pbar = GTK_PROGRESS(Xdialog.widget1);
-	/* Set the start value and the range of the progress bar */
-	gtk_progress_configure(pbar, value, 0, 100);
-	/* Set the format of the string that can be displayed in the
-	 * trough of the progress bar:
-	 * %p - percentage
-	 * %v - value
-	 * %l - lower range value
-	 * %u - upper range value */
-	gtk_progress_set_format_string(pbar, "%p%%");
-	gtk_progress_set_show_text(pbar, TRUE);
-	gtk_container_add(GTK_CONTAINER(align), Xdialog.widget1);
+	Xdialog.widget1 = gtk_progress_bar_new ();
+	gtk_box_pack_start (GTK_BOX (hbox), Xdialog.widget1, TRUE, TRUE, 10);
 	gtk_widget_show(Xdialog.widget1);
+
+	// set initial %
+	char txt[20];
+	snprintf(txt, sizeof(txt), "%g%%", value); // 50%
+	gtk_progress_bar_set_text (GTK_PROGRESS_BAR (Xdialog.widget1), txt);
+	value = value / 100;
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (Xdialog.widget1), value);
 
 	Xdialog.label_text[0] = 0;
 	Xdialog.new_label = Xdialog.check = FALSE;
