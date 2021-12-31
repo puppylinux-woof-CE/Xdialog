@@ -1953,20 +1953,15 @@ void create_calendar(gchar *optarg, gint day, gint month, gint year)
 	set_backtitle(TRUE);
 	set_label(optarg, FALSE);
 
-	flags = GTK_CALENDAR_SHOW_HEADING | GTK_CALENDAR_SHOW_DAY_NAMES;
-	/* There is a bug in GTK+ v1.2.7 preventing the week numbers to show
-	 * properly (all numbers are 0 !)...
-	 */
-	if (!(gtk_major_version == 1 && gtk_minor_version == 2 &&
-	    gtk_micro_version == 7))
-		flags = flags | GTK_CALENDAR_SHOW_WEEK_NUMBERS;
+	flags = GTK_CALENDAR_SHOW_HEADING | GTK_CALENDAR_SHOW_DAY_NAMES | \
+			GTK_CALENDAR_SHOW_WEEK_NUMBERS;
 
 	Xdialog.widget1 = gtk_calendar_new();
 	gtk_box_pack_start(Xdialog.vbox, Xdialog.widget1, TRUE, TRUE, 5);
 	gtk_widget_show(Xdialog.widget1);
 
 	calendar = GTK_CALENDAR(Xdialog.widget1);
-	gtk_calendar_display_options(calendar, flags);
+	gtk_calendar_set_display_options(calendar, flags);
 
 	gtk_calendar_select_month(calendar, month-1, year);
 	gtk_calendar_select_day(calendar, day);
