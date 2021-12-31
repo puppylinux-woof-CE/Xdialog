@@ -60,7 +60,7 @@ static void get_font_metrics(GtkWidget *window, PangoFontDescription *font, gint
 	PangoFontMap *fm = pango_ft2_font_map_new();
 	PangoFont *pfont = pango_font_map_load_font (fm, pc, font);
 	PangoFontMetrics *metrics = pango_font_get_metrics (pfont, NULL);
-	*xmult = pango_font_metrics_get_approximate_digit_width(metrics);
+	*xmult = pango_font_metrics_get_approximate_char_width(metrics);
 	*ymult = pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics) + 2;
 	*xmult /= PANGO_SCALE;
 	*ymult /= PANGO_SCALE;
@@ -516,7 +516,6 @@ static GtkWidget *set_scrollable_text(void)
 {
 	GtkWidget *text;
 	GtkWidget *scrollwin;
-	GtkStyle  *style;
 	
 	scrollwin = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_show (scrollwin);
@@ -526,9 +525,7 @@ static GtkWidget *set_scrollable_text(void)
 
 	/* fixed font support by 01micko */
 	if (Xdialog.fixed_font) {
-		style = gtk_style_new();
-		style->font_desc = fixed_font;
-		gtk_widget_modify_font(text, style->font_desc);
+		gtk_widget_modify_font(text, fixed_font);
 	}
 
 	gtk_widget_show(text);
@@ -1801,6 +1798,7 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
 	gtk_color_selection_set_current_color(GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection (colorsel)), colors);
+	gtk_color_selection_set_has_palette (GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection (colorsel)), TRUE);
 
 	/* Setup callbacks */
 	g_signal_connect(GTK_WIDGET(Xdialog.window), "destroy",
