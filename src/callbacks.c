@@ -892,22 +892,51 @@ void cb_selection_changed(GtkWidget *tree)
 
 void sensitive_buttons(void)
 {
-	gtk_widget_set_sensitive(Xdialog.widget3,
-				 g_list_length(GTK_LIST(Xdialog.widget1)->children) != 0);
-	gtk_widget_set_sensitive(Xdialog.widget4,
-				 g_list_length(GTK_LIST(Xdialog.widget2)->children) != 0);
+	GtkTreeIter tree_iter;
+	GtkTreeModel *model;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
+
+	if (gtk_tree_model_get_iter_first(model, &tree_iter)) {
+		gtk_widget_set_sensitive(Xdialog.widget3, TRUE);
+	} else {
+		gtk_widget_set_sensitive(Xdialog.widget3, FALSE);
+	}
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
+
+	if (gtk_tree_model_get_iter_first(model, &tree_iter)) {
+		gtk_widget_set_sensitive(Xdialog.widget4, TRUE);
+	} else {
+		gtk_widget_set_sensitive(Xdialog.widget4, FALSE);
+	}
 }
 
 
 gboolean add_to_list(GtkButton *button, gpointer data)
 {
-	GList *selected;
+	GtkTreeIter tree_iter1, tree_iter2;
+	GtkTreeModel *model1, *model2;
+	GtkTreeSelection* selection1;
 
-	selected = g_list_copy(GTK_LIST(Xdialog.widget1)->selection);
-	gtk_list_remove_items_no_unref(GTK_LIST(Xdialog.widget1), selected);
-	gtk_list_append_items(GTK_LIST(Xdialog.widget2), selected);
+	model1 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
+	selection1 = gtk_tree_view_get_selection(GTK_TREE_VIEW(Xdialog.widget1));
+	model2 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
 
-	sensitive_buttons();
+	if (gtk_tree_selection_get_selected(selection1, &model1, &tree_iter1)) {
+		gchar *name, *tag;
+		gtk_tree_model_get(model1, &tree_iter1, 0, &name, 1, &tag, -1);
+
+		gtk_list_store_append(GTK_LIST_STORE(model2), &tree_iter2);
+		gtk_list_store_set(GTK_LIST_STORE(model2), &tree_iter2, 0,
+			 name, 1, tag, -1);
+		gtk_list_store_remove(GTK_LIST_STORE(model1), &tree_iter1);
+
+		g_free(name);
+		g_free(tag);
+	}
+  
+	sensitive_buttons(); 
 
 	return TRUE;
 }
@@ -915,11 +944,25 @@ gboolean add_to_list(GtkButton *button, gpointer data)
 
 gboolean remove_from_list(GtkButton *button, gpointer data)
 {
-	GList *selected;
+	GtkTreeIter tree_iter1, tree_iter2;
+	GtkTreeModel *model1, *model2;
+	GtkTreeSelection* selection2;
 
-	selected = g_list_copy(GTK_LIST(Xdialog.widget2)->selection);
-	gtk_list_remove_items_no_unref(GTK_LIST(Xdialog.widget2), selected);
-	gtk_list_append_items(GTK_LIST(Xdialog.widget1), selected);
+	model1 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget1));
+	model2 = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
+	selection2 = gtk_tree_view_get_selection(GTK_TREE_VIEW(Xdialog.widget2));
+
+	if (gtk_tree_selection_get_selected(selection2, &model2, &tree_iter2)) {
+		gchar *name, *tag;
+		gtk_tree_model_get(model2, &tree_iter2, 0, &name, 1, &tag, -1);
+
+		gtk_list_store_append(GTK_LIST_STORE(model1), &tree_iter1);
+		gtk_list_store_set(GTK_LIST_STORE(model1), &tree_iter1, 0, name, 1, tag, -1);
+		gtk_list_store_remove(GTK_LIST_STORE(model2), &tree_iter2);
+
+		g_free(name);
+		g_free(tag);
+	}
 
 	sensitive_buttons();
 
@@ -929,22 +972,29 @@ gboolean remove_from_list(GtkButton *button, gpointer data)
 
 gboolean print_list(GtkButton *button, gpointer data)
 {
-	GList *children;
-	int i;
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	gboolean valid;
 	gboolean flag = FALSE;
 
-	children = GTK_LIST(Xdialog.widget2)->children;
-	while (children != NULL) {
-		for (i = 0 ; Xdialog.array[i].state != -1 ; i++) {
-			if (Xdialog.array[i].widget == children->data) {
-				if (flag)
-					fprintf(Xdialog.output, "%s", Xdialog.separator);
-				fprintf(Xdialog.output, "%s", Xdialog.array[i].tag);
-				flag = TRUE;
-				break;
-			}
-		}
-		children = g_list_next(children);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(Xdialog.widget2));
+	valid = gtk_tree_model_get_iter_first(model, &iter);
+
+	while (valid) {
+		gchar *name_data, *tag_data;
+
+		gtk_tree_model_get(model, &iter, 0, &name_data, 1, &tag_data, -1);
+
+		if (flag)
+			fprintf(Xdialog.output, "%s", Xdialog.separator);
+
+		fprintf(Xdialog.output, "%s", tag_data);
+		flag = TRUE;
+
+		g_free(name_data);
+		g_free(tag_data);
+
+		valid = gtk_tree_model_iter_next(model, &iter);
 	}
 	if (flag)
 		fprintf(Xdialog.output, "\n");

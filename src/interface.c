@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: buildlist (gtk_list), logbox (gtk_clist), progressbox
+// TODO: needs upgrade: logbox (gtk_clist), progressbox
 
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
@@ -558,16 +558,30 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 
 
 static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
-				    gint spacing)
+				    gint spacing, GtkListStore *store)
 {
 	GtkWidget *scrolled_window;
 	GtkWidget *list;
+	GtkCellRenderer *renderer;
+	GtkTreeViewColumn *column;
 
-	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize, list_size, spacing);
-	list = gtk_list_new();
+	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize,
+		list_size, spacing);
+	list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+
 	gtk_widget_show(list);
-	gtk_list_set_selection_mode(GTK_LIST(list), GTK_SELECTION_MULTIPLE);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), list);
+	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (list), FALSE);	
+	if (Xdialog.tips==1) gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (list), 2);
+
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("", renderer, "text",
+		0, NULL);
+
+	gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+	// don't host it under viewport, otherwise not scrollable by keyboard
+	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), list);
+	gtk_container_add(GTK_CONTAINER(scrolled_window), list);
 
 	return list;
 }
@@ -630,7 +644,7 @@ static int item_status(GtkWidget *item, char *status, char *tag)
 			return 1;
 
 		if (!strcasecmp(status, "unavailable") || strlen(tag) == 0) {
-			gtk_widget_set_sensitive(item, FALSE);
+			if (item) gtk_widget_set_sensitive(item, FALSE);
 			return -1;
 		}
 #else
@@ -642,7 +656,7 @@ static int item_status(GtkWidget *item, char *status, char *tag)
 		if (!strcmp(status, "unavailable") ||
 		    !strcmp(status, "Unavailable") ||
 		    !strcmp(status, "UNAVAILABLE") || strlen(tag) == 0) {
-			gtk_widget_set_sensitive(item, FALSE);
+			if (item) gtk_widget_set_sensitive(item, FALSE);
 			return -1;
 		}
 #endif
@@ -1325,76 +1339,88 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	GtkWidget *button_add;
 	GtkWidget *button_remove;
 	GtkWidget *button_ok;
-	GtkWidget *item;
-	
-	GList *glist1 = NULL;
-	GList *glist2 = NULL;
-	GtkTooltips *tooltips = NULL;
+
+	GtkListStore *tree_list1, *tree_list2, *tree_list;
+	GtkTreeIter tree_iter1, tree_iter2, tree_iter;
 	gint i, n = 0;
 	int params = 3 + Xdialog.tips;
-
-	if (Xdialog.tips == 1)
-		tooltips = gtk_tooltips_new();
 
 	Xdialog_array(list_size);
 	open_window();
 	set_backtitle(TRUE);
 	set_label(optarg, FALSE);
 
+	tree_list1 = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	tree_list2 = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+
 	/* Put all parameters into an array and calculate the max item width */
 	for (i = 0;  i < list_size; i++) {
-		strcpysafe(Xdialog.array[i].tag, options[params*i], MAX_ITEM_LENGTH);
-		strcpysafe(Xdialog.array[i].name, options[params*i+1], MAX_ITEM_LENGTH);
-		if (strlen(Xdialog.array[i].name) > n)
+		strncpy(Xdialog.array[i].tag, options[params*i], sizeof(Xdialog.array[i].tag));
+		strncpy(Xdialog.array[i].name, options[params*i+1], sizeof(Xdialog.array[i].name));
+		if ((gint) strlen(Xdialog.array[i].name) > n)
 			n = strlen(Xdialog.array[i].name);
-		item = gtk_list_item_new_with_label(Xdialog.array[i].name);
-		gtk_widget_show(item);
-		Xdialog.array[i].widget = item;
 
-		if (item_status(item, options[params*i+2], Xdialog.array[i].tag) == 1)
-			glist2 = g_list_append(glist2, item);
-		else
-			glist1 = g_list_append(glist1, item);
+		if (item_status(NULL, options[params*i+2], Xdialog.array[i].tag) == 1) {
+			tree_list = tree_list2; tree_iter = tree_iter2;
+		} else {
+			tree_list = tree_list1; tree_iter = tree_iter1;
+		}
 
+		gtk_list_store_append(tree_list, &tree_iter);
 		if (Xdialog.tips == 1 && strlen(options[params*i+3]) > 0)
-			gtk_tooltips_set_tip(tooltips, item, (gchar *) options[params*i+3], NULL);
+			gtk_list_store_set(tree_list, &tree_iter,
+				0, Xdialog.array[i].name,
+				1, Xdialog.array[i].tag,
+				2, (gchar *) options[params*i+3],
+			-1);
+		else
+			gtk_list_store_set(tree_list, &tree_iter,
+				0, Xdialog.array[i].name,
+				1, Xdialog.array[i].tag,
+			-1);
 	}
 
 	/* Setup a hbox to hold the scrolled windows and the Add/Remove buttons */
+#if defined(USE_GTK3)
+	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+#else
 	hbox = gtk_hbox_new(FALSE, 0);
+#endif
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(Xdialog.vbox, hbox, TRUE, TRUE, ymult/3);
 
 	/* Setup the first list into a scrolled window */
-	Xdialog.widget1 = set_scrolled_list(hbox, MAX(15, n), list_size, 4);
+	Xdialog.widget1 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list1);
+	g_object_unref(G_OBJECT(tree_list1));
 
 	/* Setup the Add/Remove buttons */
+#if defined(USE_GTK3)
+	vbuttonbox = gtk_button_box_new (GTK_ORIENTATION_VERTICAL);
+#else
 	vbuttonbox = gtk_vbutton_box_new();
+#endif
 	gtk_widget_show(vbuttonbox);
 	gtk_box_pack_start(GTK_BOX(hbox), vbuttonbox, FALSE, TRUE, 0);
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(vbuttonbox), GTK_BUTTONBOX_SPREAD);
-	button_add = Xdialog.widget3 = set_button(ADD, vbuttonbox, -1, FALSE);
-	button_remove = Xdialog.widget4 = set_button(REMOVE, vbuttonbox, -1, FALSE);
 
-	g_signal_connect(GTK_WIDGET(button_add), "clicked",
+	button_add = Xdialog.widget3 = set_button(ADD, vbuttonbox, -1, FALSE);
+	g_signal_connect (G_OBJECT(button_add), "clicked",
 			   G_CALLBACK(add_to_list), NULL);
-	g_signal_connect(GTK_WIDGET(button_remove), "clicked",
+	button_remove = Xdialog.widget4 = set_button(REMOVE, vbuttonbox, -1, FALSE);
+	g_signal_connect (G_OBJECT(button_remove), "clicked",
 			   G_CALLBACK(remove_from_list), NULL);
 
 	/* Setup the second list into a scrolled window */
-	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4);
+	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list2);
+	g_object_unref(G_OBJECT(tree_list2));
 
 	button_ok = set_all_buttons(FALSE, TRUE);
-
-	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_list), NULL);
-
-	gtk_list_append_items(GTK_LIST(Xdialog.widget1), glist1);
-	gtk_list_append_items(GTK_LIST(Xdialog.widget2), glist2);
+	g_signal_connect (G_OBJECT(button_ok), "clicked", G_CALLBACK(print_list), NULL);
 
 	sensitive_buttons();
 
 	if (Xdialog.interval > 0)
-		Xdialog.timer = gtk_timeout_add(Xdialog.interval, buildlist_timeout, NULL);
+		Xdialog.timer = g_timeout_add(Xdialog.interval, buildlist_timeout, NULL);
 
 	set_timeout();
 }
@@ -1604,6 +1630,8 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	gtk_tree_view_append_column(GTK_TREE_VIEW(Xdialog.widget1), column);
 
 	gtk_widget_show(Xdialog.widget1);
+	
+	//don't host it under viewport, otherwise not scrollable by keyboard	
 	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), Xdialog.widget1);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget1);
 
