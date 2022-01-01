@@ -1337,7 +1337,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	GtkWidget *button_ok;
 
 	GtkListStore *tree_list1, *tree_list2, *tree_list;
-	GtkTreeIter tree_iter1, tree_iter2, tree_iter;
+	GtkTreeIter tree_iter1, tree_iter2, *tree_iter;
 	gint i, n = 0;
 	int params = 3 + Xdialog.tips;
 
@@ -1357,20 +1357,20 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 			n = strlen(Xdialog.array[i].name);
 
 		if (item_status(NULL, options[params*i+2], Xdialog.array[i].tag) == 1) {
-			tree_list = tree_list2; tree_iter = tree_iter2;
+			tree_list = tree_list2; tree_iter = &tree_iter2;
 		} else {
-			tree_list = tree_list1; tree_iter = tree_iter1;
+			tree_list = tree_list1; tree_iter = &tree_iter1;
 		}
 
-		gtk_list_store_append(tree_list, &tree_iter);
+		gtk_list_store_append(tree_list, tree_iter);
 		if (Xdialog.tips == 1 && strlen(options[params*i+3]) > 0)
-			gtk_list_store_set(tree_list, &tree_iter,
+			gtk_list_store_set(tree_list, tree_iter,
 				0, Xdialog.array[i].name,
 				1, Xdialog.array[i].tag,
 				2, (gchar *) options[params*i+3],
 			-1);
 		else
-			gtk_list_store_set(tree_list, &tree_iter,
+			gtk_list_store_set(tree_list, tree_iter,
 				0, Xdialog.array[i].name,
 				1, Xdialog.array[i].tag,
 			-1);
