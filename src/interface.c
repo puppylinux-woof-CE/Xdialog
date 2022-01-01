@@ -542,6 +542,7 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 	gtk_container_set_border_width(GTK_CONTAINER(scrolled_window), border_width);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 				       GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN);
 	gtk_box_pack_start(box, scrolled_window, TRUE, TRUE, 0);
 	gtk_widget_show(scrolled_window);
 
@@ -565,7 +566,7 @@ static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
 
-	scrolled_window = set_scrolled_window(GTK_BOX(box), 0, xsize,
+	scrolled_window = set_scrolled_window(GTK_BOX(box), 5, xsize,
 		list_size, spacing);
 	list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 
@@ -756,7 +757,7 @@ void create_gauge(gchar *optarg, gint percent)
 #else
 	hbox = gtk_hbox_new (FALSE, 0);
 #endif
-	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 0);
+	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 10);
 	gtk_widget_show(hbox);
 
 	/* Set up the progress bar */
@@ -811,7 +812,7 @@ void create_progress(gchar *optarg, gint leading, gint maxdots)
 
 	/* Set up the progress bar */
 	Xdialog.widget1 = gtk_progress_bar_new ();
-	gtk_box_pack_start (GTK_BOX (hbox), Xdialog.widget1, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (hbox), Xdialog.widget1, TRUE, TRUE, 10);
 	gtk_widget_show(Xdialog.widget1);
 
 	// set initial %
@@ -1395,7 +1396,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	vbuttonbox = gtk_vbutton_box_new();
 #endif
 	gtk_widget_show(vbuttonbox);
-	gtk_box_pack_start(GTK_BOX(hbox), vbuttonbox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), vbuttonbox, FALSE, TRUE, 10);
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(vbuttonbox), GTK_BUTTONBOX_SPREAD);
 
 	button_add = Xdialog.widget3 = set_button(ADD, vbuttonbox, -1, FALSE);
