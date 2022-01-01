@@ -287,15 +287,12 @@ gboolean gauge_timeout(gpointer data)
 
 gboolean progress_timeout(gpointer data)
 {
-	gfloat new_val;
-	GtkAdjustment *adj;
+	gdouble new_val;
 	char temp[256];
-	int ret;
+	int ret, percent;
 
 	if (!empty_gtk_queue())
 		return FALSE;
-
-	adj = GTK_PROGRESS(Xdialog.widget1)->adjustment;
 
 	temp[255] = '\0';
 
@@ -311,22 +308,34 @@ gboolean progress_timeout(gpointer data)
 
 	if (temp[0] >= '0' && temp[0] <= '9') {
 		/* Get and convert a string into an integer for use as
-		 * the new progress bar value... */
+		 * the new progress bar value... 1-100 */
 		ret = scanf("%254s", temp + 1);
 		if (ret == EOF)
 			return exit_ok(NULL, NULL);
 		if (ret != 1)
 			return TRUE;
-		new_val = (gfloat) atoi(temp);
+		new_val = strtod (temp, NULL) / 100.0;
 	} else {
 		/* Increment the number of "dots" */
-		new_val = gtk_adjustment_get_value(adj) + 1;
+		new_val = gtk_progress_bar_get_fraction (GTK_PROGRESS_BAR (Xdialog.widget1));
+		new_val = new_val + Xdialog.progress_step;
 	}
 
-	if ((new_val > gtk_adjustment_get_upper(adj)) || (new_val < gtk_adjustment_get_lower(adj)) )
+	///printf("%g\n", new_val);
+	if (new_val < 0.0 || new_val > 1.0) {
 		return exit_ok(NULL, NULL);
+	}
+
+	/* https://www.mathsisfun.com/converting-fractions-percents.html */
+	percent = (int) ((new_val / 1.0) * 100.0);
+
+	/* set pg txt */
+	char txt[20];
+	snprintf(txt, sizeof(txt), "%d%%", percent);
+	gtk_progress_bar_set_text (GTK_PROGRESS_BAR (Xdialog.widget1), txt);
+
 	/* Set the new value */
-	gtk_progress_set_value(GTK_PROGRESS(Xdialog.widget1), new_val);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (Xdialog.widget1), new_val);
 
 	/* As this is a timeout function, return TRUE so that it
 	 * continues to get called */

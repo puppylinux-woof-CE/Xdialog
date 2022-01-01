@@ -781,17 +781,19 @@ void create_gauge(gchar *optarg, gint percent)
 
 void create_progress(gchar *optarg, gint leading, gint maxdots)
 {
-	GtkWidget *label;
-	GtkWidget *align;
-	GtkProgress *pbar;
-	GtkAdjustment *adj;
-	int ceiling, i;
-	char temp[2];
+	GtkWidget * label, * hbox;
+	gdouble ceiling;
+	int i;
+	unsigned char temp[2];
+	size_t rresult;
 
 	if (maxdots <= 0)
-		ceiling = 100;
+		ceiling = 1.0;
 	else
-		ceiling = maxdots;
+		ceiling = (gdouble) maxdots;
+
+	/* convert to fractions - step */
+	Xdialog.progress_step = 1.0 / ceiling;
 
 	open_window();
 
@@ -799,40 +801,39 @@ void create_progress(gchar *optarg, gint leading, gint maxdots)
 
 	trim_string(optarg, Xdialog.label_text, MAX_LABEL_LENGTH);
 	label = set_label(Xdialog.label_text, TRUE);
-
-	align = gtk_alignment_new(0.5, 0.5, 0.8, 0);
-	gtk_box_pack_start(Xdialog.vbox, align, FALSE, FALSE, ymult/2);
-	gtk_widget_show(align);
-
-	/* Create an Adjusment object to hold the range of the progress bar */
-	adj = GTK_ADJUSTMENT(gtk_adjustment_new(0, 0, 100, 0, 0, 0));
+#if defined(USE_GTK3)
+	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+#else
+	hbox = gtk_hbox_new (FALSE, 0);
+#endif
+	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 10);
+	gtk_widget_show(hbox);
 
 	/* Set up the progress bar */
-	Xdialog.widget1 = gtk_progress_bar_new_with_adjustment(adj);
-	pbar = GTK_PROGRESS(Xdialog.widget1);
-	/* Set the start value and the range of the progress bar */
-	gtk_progress_configure(pbar, 0, 0, ceiling);
-	/* Set the format of the string that can be displayed in the
-	 * trough of the progress bar:
-	 * %p - percentage
-	 * %v - value
-	 * %l - lower range value
-	 * %u - upper range value */
-	gtk_progress_set_format_string(pbar, "%p%%");
-	gtk_progress_set_show_text(pbar, TRUE);
-	gtk_container_add(GTK_CONTAINER(align), Xdialog.widget1);
+	Xdialog.widget1 = gtk_progress_bar_new ();
+	gtk_box_pack_start (GTK_BOX (hbox), Xdialog.widget1, TRUE, TRUE, 0);
 	gtk_widget_show(Xdialog.widget1);
+
+	// set initial %
+	gtk_progress_bar_set_text (GTK_PROGRESS_BAR (Xdialog.widget1), "0%");
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (Xdialog.widget1), 0.0);
 
 	/* Skip the characters to be ignored on the input stream */
 	if (leading < 0) {
-		for (i=1; i < -leading; i++)
-			fread(temp, sizeof(char), 1, stdin);
+		for (i=1; i < -leading; i++) {
+			rresult = fread(temp, sizeof(char), 1, stdin);
+			if (rresult < 1 && feof(stdin))
+				break;
+		}
 	} else if (leading > 0) {
 		for (i=1; i < leading; i++) {
 			temp[0] = temp[1] = 0;
-			fread(temp, sizeof(unsigned char), 1, stdin);
+			rresult = fread(temp, sizeof(unsigned char), 1, stdin);
+			if (rresult < 1 && feof(stdin))
+				break;
+
 			if (temp[0] >= ' ' || temp[0] == '\n')
-				strcatsafe(Xdialog.label_text, temp, MAX_LABEL_LENGTH);
+				strncat(Xdialog.label_text, (char*)temp, sizeof(Xdialog.label_text));
 		}
 		gtk_label_set_text(GTK_LABEL(label), Xdialog.label_text);
 	}

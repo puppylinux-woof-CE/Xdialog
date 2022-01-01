@@ -189,6 +189,7 @@ typedef struct	{
 	char		rc_file[MAX_FILENAME_LENGTH];
 	char		printer[MAX_PRTNAME_LENGTH];
 	int		exit_code;
+	gdouble		progress_step; /* --progress */
 	listname *	array;
 } Xdialog_data;
 
