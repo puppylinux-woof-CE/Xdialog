@@ -63,16 +63,20 @@ gboolean print_items(GtkButton *button, gpointer data);
 
 gboolean itemlist_timeout(gpointer data);
 
-void item_select(GtkWidget *clist, gint row, gint column, GdkEventButton *event,
-		 gpointer data);
+void on_menubox_treeview_cursor_changed_cb (GtkTreeView *tree_view, gpointer data);
+
+void on_menubox_treeview_row_activated_cb (GtkTreeView *tree_view, GtkTreePath *path,
+                             GtkTreeViewColumn *column, gpointer data);
+
+void on_menubox_ok_click (GtkButton *button, gpointer data);
+
+gboolean menu_timeout(gpointer data);
 
 gboolean print_selection(GtkButton *button, gpointer data);
 
 gboolean print_tree_selection(GtkButton *button, gpointer data);
 
-gboolean menu_timeout(gpointer data);
-
-gboolean move_to_row_timeout(gpointer data);
+gboolean treeview_timeout(gpointer data);
 
 void cb_selection_changed(GtkWidget *tree);
 

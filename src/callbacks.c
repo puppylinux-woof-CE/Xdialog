@@ -760,7 +760,7 @@ gboolean spinbox_timeout(gpointer data)
 	return spinbox_exit(NULL, NULL);
 }
 
-/* Double-click event is processed as a button click in menubox, radiolist and
+/* Double-click event is processed as a button click in radiolist and
  * checklist... The button widget is to be passed as "data".
  */
 gint double_click_event(GtkWidget *object, GdkEventButton *event,
@@ -808,30 +808,64 @@ gboolean itemlist_timeout(gpointer data)
 
 /* menubox callback */
 
-void item_select(GtkWidget *clist, gint row, gint column,
-		 GdkEventButton *event, gpointer data)
+static void menubox_print_selected(GtkTreeView *tree_view)
 {
-	/* If the tag is empty, then this is an unavailable item:
-	 * select back the last selected row and exit.
-	 */
-	if (strlen(Xdialog.array[row].tag) == 0) {
-		gtk_clist_select_row(GTK_CLIST(clist), Xdialog.array[0].state, 0);
-		return;
-	}
+	GtkTreeSelection *selection;
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	gchar *tag;
 
-	/* Just remember which row was last selected (we use the first
-	 * row status variable IOT do so)...
-	 */
-	Xdialog.array[0].state = row;
+	selection = gtk_tree_view_get_selection (tree_view);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
 
-	if (Xdialog.tips == 1) {
-		gtk_statusbar_pop(GTK_STATUSBAR(Xdialog.widget1), Xdialog.status_id);
-		gtk_statusbar_push(GTK_STATUSBAR(Xdialog.widget1), Xdialog.status_id,
-				   Xdialog.array[row].tips);
+	gtk_tree_model_get (model, &iter, 0, &tag, -1);
+	if (tag) {
+		fprintf(Xdialog.output, "%s\n", tag);
+		g_free(tag);
 	}
 }
 
-/* menubox and treeview callback */
+void
+on_menubox_treeview_cursor_changed_cb (GtkTreeView *tree_view, gpointer data)
+{
+	GtkTreeSelection *selection;
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	gchar *tip;
+
+	selection = gtk_tree_view_get_selection (tree_view);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
+	gtk_tree_model_get (model, &iter, 2, &tip, -1);
+
+	if (Xdialog.tips == 1) {
+		gtk_statusbar_pop(GTK_STATUSBAR(Xdialog.widget1), Xdialog.status_id);
+		gtk_statusbar_push(GTK_STATUSBAR(Xdialog.widget1), Xdialog.status_id, tip);
+		g_free(tip);
+	}
+}
+
+void
+on_menubox_treeview_row_activated_cb (GtkTreeView *tree_view, GtkTreePath *path,
+                             GtkTreeViewColumn *column, gpointer data)
+{
+	menubox_print_selected (tree_view);
+	exit_ok (NULL, NULL);
+}
+
+void
+on_menubox_ok_click (GtkButton *button, gpointer data)
+{
+	menubox_print_selected (GTK_TREE_VIEW (data));
+	exit_ok (NULL, NULL);
+}
+
+gboolean menu_timeout(gpointer data)
+{
+	menubox_print_selected (GTK_TREE_VIEW(Xdialog.widget2));
+	return TRUE;
+}
+
+/* treeview callback */
 
 gboolean print_selection(GtkButton *button, gpointer data)
 {
@@ -854,18 +888,9 @@ gboolean print_tree_selection(GtkButton *button, gpointer data)
 	return FALSE;
 }
 
-gboolean menu_timeout(gpointer data)
+gboolean treeview_timeout(gpointer data)
 {
 	return print_selection(NULL, NULL);
-}
-
-gboolean move_to_row_timeout(gpointer data)
-{
-	gtk_clist_moveto(GTK_CLIST(Xdialog.widget2),
-			 Xdialog.array[0].state, 0, 0.5, 0.0);
-
-	/* Run this timeout function only once ! */
-	return FALSE;	
 }
 
 void cb_selection_changed(GtkWidget *tree)

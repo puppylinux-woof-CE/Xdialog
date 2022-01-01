@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: menubox, logbox (gtk_clist), combobox, itemlist, 
+// TODO: needs upgrade: logbox (gtk_clist), combobox, itemlist, 
 
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
@@ -1421,28 +1421,24 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	set_timeout();
 }
 
-
-/* It looks like clists are particularly buggy in GTK+ (at least up to and
- * including GTK+ v1.2.10), so let's try to work around these (annoying !)
- * bugs.
- */
-#define GTK_CLIST_BUG_WORK_AROUND 1	/* Work-around for column 0 visibility bug */
-
 void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 {
 	GtkWidget *button_ok;
 	GtkWidget *scrolled_window;
 	GtkWidget *status_bar = NULL;
 	GtkWidget *hbox = NULL;
-	GtkCList *clist;
-	static gchar *null_row[] = {NULL, NULL};
-	gint rownum = 0;
-	gint n = 0; /* Dougal: use for max tag length */
-	gint first_selectable = -1;
+
+	GtkTreeModel     *tree_model;
+	GtkTreeView      *treeview;
+	GtkTreeSelection *tree_sel;
+	GtkListStore *store;
+	GtkTreeIter  iter;
+	
+	GtkCellRenderer *renderer;
+	GtkTreeViewColumn *column;
+	
 	int i;
 	int params = 2 + Xdialog.tips;
-	const GdkColor GREY1 = { 0, 0x6000, 0x6000, 0x6000 };
-	const GdkColor GREY2 = { 0, 0xe000, 0xe000, 0xe000 };
 
 	Xdialog_array(list_size);
 	Xdialog.array[0].state = -1;
@@ -1454,92 +1450,92 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 
 	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, -1, list_size, 4);
 
-	Xdialog.widget2 = gtk_clist_new(2);
-	clist = GTK_CLIST(Xdialog.widget2);
-	gtk_clist_set_selection_mode(clist, GTK_SELECTION_BROWSE);
-	gtk_clist_set_shadow_type(clist, GTK_SHADOW_IN);
+	store = gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	tree_model = GTK_TREE_MODEL (store);
+
+	treeview = GTK_TREE_VIEW (gtk_tree_view_new_with_model (tree_model));
+	Xdialog.widget2 = GTK_WIDGET (treeview);
+
+	gtk_tree_view_set_headers_visible (treeview, FALSE);
+	if (Xdialog.tips==1) gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (treeview), 2);
+
+	tree_sel = gtk_tree_view_get_selection (treeview);
+	gtk_tree_selection_set_mode (tree_sel, GTK_SELECTION_BROWSE);
+
+	// column 0 - tag
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("tag", renderer, "text", 0, NULL);
+	//g_object_set(renderer, "xalign", 0.0, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+	if (!Xdialog.tags) {
+		gtk_tree_view_column_set_visible (column, FALSE);
+	}
+
+	// column 1 - name
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("item", renderer, "text", 1, NULL);
+	//g_object_set(renderer, "xalign", 0.0, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+/*  // This also works - but too the above is shorter
+	// column 0 - tag
+	renderer = g_object_new (GTK_TYPE_CELL_RENDERER_TEXT,
+                           "xalign", 0.0,     // justify left
+                           NULL);
+	column = g_object_new (GTK_TYPE_TREE_VIEW_COLUMN,
+                          "title",          "tag",
+                          NULL);
+	gtk_tree_view_column_pack_start (column, renderer, FALSE);
+	gtk_tree_view_column_add_attribute (column, renderer, "text", 0);
+	gtk_tree_view_append_column (treeview, column);
+	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
+	if (!Xdialog.tags) {
+		gtk_tree_view_column_set_visible (column, FALSE);
+	}
+
+	// column 1 - name
+	renderer = g_object_new(GTK_TYPE_CELL_RENDERER_TEXT,
+                           "xalign", 0.0,
+                           NULL);
+	column = g_object_new (GTK_TYPE_TREE_VIEW_COLUMN,
+                          "title",          "name",
+                          NULL);
+	gtk_tree_view_column_pack_start (column, renderer, FALSE);
+	gtk_tree_view_column_add_attribute (column, renderer, "text", 1);
+	gtk_tree_view_append_column (treeview, column);
+	gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
+*/
 
 	for (i = 0; i < list_size; i++) {
 		strcpysafe(Xdialog.array[i].tag, options[params*i], MAX_ITEM_LENGTH);
 		strcpysafe(Xdialog.array[i].name, options[params*i+1], MAX_ITEM_LENGTH);
+
+		gtk_list_store_append (store, &iter);
+		gtk_list_store_set (store, &iter,
+						0, *Xdialog.array[i].tag ? Xdialog.array[i].tag : "~",
+						1, Xdialog.array[i].name,
+						-1);
 		if (Xdialog.tips == 1)
-			strcpysafe(Xdialog.array[i].tips, options[params*i+2], MAX_ITEM_LENGTH);
+			gtk_list_store_set (store, &iter, 2, (gchar *) options[params*i+2], -1);
 
-		rownum = gtk_clist_append(clist, null_row);
-
-		if (strlen(Xdialog.array[i].tag) == 0) {
-			gtk_clist_set_text(clist, rownum, 0, "~");
-			gtk_clist_set_selectable(clist, rownum, FALSE);
-			gtk_clist_set_foreground(clist, rownum, (GdkColor *) &GREY1);
-			gtk_clist_set_background(clist, rownum, (GdkColor *) &GREY2);
-		} else {
-			gtk_clist_set_text(clist, rownum, 0, Xdialog.array[i].tag);
-			if ( first_selectable == -1 ) {
-				first_selectable = rownum;
-			}
-			if (strlen(Xdialog.array[i].tag) > n)
-			n = strlen(Xdialog.array[i].tag); /* Dougal:get max length for later */
-		}
-
-	/* FIX ME !
-	 * There is apparently a bug in GTK+ preventing to hide the first column
-	 * of a CLIST... This is to say that in order to hide the tags when the
-	 * --no-tags option is in force, we must put the <item>s text in both
-	 * columns 0 and 1 and then hide column 1, instead of putting the <tag>s
-	 * in column 0, the <item>s in column 1 and hiding the column 0...
-	 * The callback function had also to be made independant of the text
-	 * in the column 0 (which was supposed to hold the <tag>s name): it now
-	 * retreives the tag name of the selected row right from the Xdialog.array
-	 * structure instead of the CLIST itself (this is not a problem though)...
-	 */
-#if GTK_CLIST_BUG_WORK_AROUND
-		gtk_clist_set_text(clist, rownum, Xdialog.tags ? 1 : 0, Xdialog.array[i].name);
-#else
-		gtk_clist_set_text(clist, rownum, 1, Xdialog.array[i].name);
-#endif
-		/* Select this row as default if the tag is the good one */
-		if (strlen(Xdialog.default_item) != 0 && !strcmp(Xdialog.default_item, Xdialog.array[i].tag)) {
-			Xdialog.array[0].state = rownum;
-			gtk_clist_select_row(clist, rownum, 0);
-		}
 	}
 
-	gtk_clist_columns_autosize(clist);
-	/* Dougal: This is a crude workaround for what seems like a GTK bug -- */
-	/*  1st column is too narrow after autoresize */
-	if ( n > 0 )
-		gtk_clist_set_column_width (clist, 0, n*9.5);
-	
-	/* Select the first selectable row as default if no other row is selected */
-	if (Xdialog.array[0].state < 0) {
-		if ( first_selectable >= 0 ) {
-			Xdialog.array[0].state = first_selectable;
-			gtk_clist_select_row(clist, first_selectable, 0);
-		}
-	}
-	/* We can't move to the default selected row right from here,
-	 * we need a timeout function to do so... It will run only once
-	 * of course !
-	 */
-	g_timeout_add(1, move_to_row_timeout, NULL);
+	GtkTreePath  *tpath = gtk_tree_path_new_from_indices (0, -1);
+	gtk_tree_selection_select_path (tree_sel, tpath);
+	gtk_tree_path_free (tpath);
 
-	if (!Xdialog.tags)
-#if GTK_CLIST_BUG_WORK_AROUND
-		gtk_clist_set_column_visibility(clist, 1, FALSE);
-#else
-		gtk_clist_set_column_visibility(clist, 0, FALSE);
-#endif
-	
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget2);
 	gtk_widget_show(Xdialog.widget2);
-	g_signal_connect(GTK_WIDGET(Xdialog.widget2), "select_row",
-			   G_CALLBACK(item_select), NULL);
+
+	g_signal_connect (G_OBJECT (treeview),  "cursor-changed",
+				G_CALLBACK(on_menubox_treeview_cursor_changed_cb), NULL);
+	g_signal_connect (G_OBJECT (treeview),  "row-activated",
+				G_CALLBACK(on_menubox_treeview_row_activated_cb), NULL);
 
 	button_ok = set_all_buttons(FALSE, TRUE);
-
-	g_signal_connect(GTK_WIDGET(button_ok), "clicked", G_CALLBACK(print_selection), NULL);
-	g_signal_connect(GTK_WIDGET(Xdialog.widget2), "button_press_event",
-			   G_CALLBACK(double_click_event), button_ok);
+	g_signal_connect (G_OBJECT(button_ok), "clicked",
+					G_CALLBACK(on_menubox_ok_click), treeview);
 
 	if (Xdialog.tips == 1) {
 		hbox = gtk_hbox_new(FALSE, 0);
@@ -1648,7 +1644,7 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	g_signal_connect(G_OBJECT(select), "changed", G_CALLBACK(cb_selection_changed), NULL);
 
 	if (Xdialog.interval > 0)
-		Xdialog.timer = g_timeout_add(Xdialog.interval, menu_timeout, NULL);
+		Xdialog.timer = g_timeout_add(Xdialog.interval, treeview_timeout, NULL);
 
 	set_timeout();
 }
