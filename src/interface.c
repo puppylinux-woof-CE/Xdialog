@@ -2,7 +2,7 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade: menubox, logbox (gtk_clist), progressbox, combobox, itemlist, 
+// TODO: needs upgrade: menubox, logbox (gtk_clist), combobox, itemlist, 
 
 #ifdef HAVE_CONFIG_H
 #	include <config.h>

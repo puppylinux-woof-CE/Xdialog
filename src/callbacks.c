@@ -325,9 +325,7 @@ gboolean progress_timeout(gpointer data)
 	if (new_val < 0.0 || new_val > 1.0) {
 		return exit_ok(NULL, NULL);
 	}
-
-	/* https://www.mathsisfun.com/converting-fractions-percents.html */
-	percent = (int) ((new_val / 1.0) * 100.0);
+	percent = (int) (new_val * 100.0);
 
 	/* set pg txt */
 	char txt[20];
