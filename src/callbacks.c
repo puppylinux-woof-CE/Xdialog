@@ -867,15 +867,6 @@ gboolean menu_timeout(gpointer data)
 
 /* treeview callback */
 
-gboolean print_selection(GtkButton *button, gpointer data)
-{
-	if ( Xdialog.array[0].state >= 0) {
-		fprintf(Xdialog.output, "%s\n", Xdialog.array[Xdialog.array[0].state].tag);
-		return TRUE;
-	} else
-		return FALSE;
-}
-
 gboolean print_tree_selection(GtkButton *button, gpointer data)
 {
 	int i = 0;
@@ -890,7 +881,7 @@ gboolean print_tree_selection(GtkButton *button, gpointer data)
 
 gboolean treeview_timeout(gpointer data)
 {
-	return print_selection(NULL, NULL);
+	return print_tree_selection(NULL, NULL);
 }
 
 void cb_selection_changed(GtkWidget *tree)

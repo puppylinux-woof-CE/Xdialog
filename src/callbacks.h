@@ -72,8 +72,6 @@ void on_menubox_ok_click (GtkButton *button, gpointer data);
 
 gboolean menu_timeout(gpointer data);
 
-gboolean print_selection(GtkButton *button, gpointer data);
-
 gboolean print_tree_selection(GtkButton *button, gpointer data);
 
 gboolean treeview_timeout(gpointer data);
