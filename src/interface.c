@@ -2,8 +2,6 @@
  * GTK+ interface functions for Xdialog.
  */
 
-// TODO: needs upgrade:
-
 #ifdef HAVE_CONFIG_H
 #	include <config.h>
 #endif
@@ -1818,9 +1816,7 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 	/* Create a color selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_color_selection_dialog_new(Xdialog.title);
 	colorsel = GTK_COLOR_SELECTION_DIALOG(Xdialog.window);
-
-	//Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(colorsel->colorsel, gtk_box_get_type()));
-	Xdialog.vbox = GTK_BOX(gtk_widget_get_ancestor(gtk_color_selection_dialog_get_color_selection (colorsel), gtk_box_get_type()));
+	Xdialog.vbox = gtk_dialog_get_content_area (GTK_DIALOG(colorsel));
 
 	/* We must realize the widget before moving it and creating the icon and
            buttons pixmaps...
@@ -1841,42 +1837,36 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 	set_window_size_and_placement();
 
 	/* Find the existing hbuttonbox pointer */
-	GtkWidget *ok_button, *cancel_button, *help_button;
+	hbuttonbox = gtk_dialog_get_action_area (GTK_DIALOG(colorsel));
+
+	/* Find the existing buttons */	
+	GtkWidget *ok_button, *cancel_button, *help_button, *prev_button=NULL;
 	g_object_get(colorsel,"ok-button",&ok_button,NULL);
 	g_object_get(colorsel,"cancel-button",&cancel_button,NULL);
 	g_object_get(colorsel,"help-button",&help_button,NULL);
-	hbuttonbox = gtk_widget_get_ancestor(ok_button, gtk_hbutton_box_get_type());
+	
+	/* Configure the color selector buttons for our use */
+	if (Xdialog.ok_label && *Xdialog.ok_label) {
+		gtk_button_set_label (GTK_BUTTON (ok_button), Xdialog.ok_label);
+ 	}
+	if (Xdialog.cancel_label && *Xdialog.cancel_label) {
+		gtk_button_set_label (GTK_BUTTON (cancel_button), Xdialog.cancel_label);
+ 	}
+ 	if (Xdialog.wizard) {
+		// cancel becomes previous
+		// ok becomes cancel
+		// new button becomes next (=ok button)
+		prev_button = cancel_button;
+		cancel_button = ok_button;
+		ok_button = set_button(NEXT , hbuttonbox, -1, FALSE);
 
-	/* Remove the colour selector buttons IOT put ours in place */
-	gtk_widget_destroy(ok_button);
-	gtk_widget_destroy(cancel_button);
-	gtk_widget_destroy(help_button);
-
-	/* Setup our own buttons */
-	if (Xdialog.wizard)
-		set_button(PREVIOUS , hbuttonbox, 3, FALSE);
-	else {
-		button = set_button(OK, hbuttonbox, 0, flag = !Xdialog.default_no);
-		if (flag)
-			gtk_widget_grab_focus(button);
-		ok_button = button;
-		g_object_set(colorsel, "ok-button", button, NULL);
+		// adjust labels
+		gtk_button_set_label (GTK_BUTTON (prev_button), PREVIOUS);
+		gtk_button_set_image (GTK_BUTTON (prev_button), gtk_image_new_from_stock("gtk-go-back", GTK_ICON_SIZE_BUTTON));
+		gtk_button_set_label (GTK_BUTTON (cancel_button), CANCEL);
+		gtk_button_set_image (GTK_BUTTON (cancel_button), gtk_image_new_from_stock("gtk-cancel", GTK_ICON_SIZE_BUTTON));
 	}
-	if (Xdialog.cancel_button) {
-		button = set_button(CANCEL, hbuttonbox, 1,
-				    flag = Xdialog.default_no && !Xdialog.wizard);
-		if (flag)
-			gtk_widget_grab_focus(button);
-		cancel_button = button;	
-		g_object_set(colorsel, "cancel-button", button, NULL);
-	}
-	if (Xdialog.wizard) {
-		button = set_button(NEXT, hbuttonbox, 0, TRUE);
-		gtk_widget_grab_focus(button);
-		ok_button = button;
-		g_object_set(colorsel, "ok-button", button, NULL);
-	}
-	if (Xdialog.help)
+ 	if (Xdialog.help)
 		set_button(HELP, hbuttonbox, 2, FALSE);
 
 	gtk_color_selection_set_current_color(GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection (colorsel)), colors);
@@ -1889,6 +1879,10 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 			   G_CALLBACK(delete_event), NULL);
 	g_signal_connect(GTK_WIDGET(ok_button),
 			   "clicked", G_CALLBACK(colorsel_exit), gtk_color_selection_dialog_get_color_selection (colorsel));
+	g_signal_connect (G_OBJECT(cancel_button), "clicked",
+	                  G_CALLBACK(exit_cancel), NULL);			   
+	if (prev_button) g_signal_connect (G_OBJECT(prev_button), "clicked",
+	                  G_CALLBACK(exit_previous), NULL);
 
 	/* Beep if requested */
 	if (Xdialog.beep & BEEP_BEFORE && Xdialog.exit_code != 2)
@@ -1950,7 +1944,7 @@ void create_fontsel(gchar *optarg)
  	if (Xdialog.wizard) {
 		// cancel becomes previous
 		// ok becomes cancel
-		// new button becoms next (=ok button)
+		// new button becomes next (=ok button)
 		prev_button = cancel_button;
 		cancel_button = ok_button;
 		ok_button = set_button(NEXT , hbuttonbox, -1, FALSE);
