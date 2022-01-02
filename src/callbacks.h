@@ -17,7 +17,7 @@ gboolean exit_help(gpointer object, gpointer data);
 
 gboolean exit_previous(gpointer object, gpointer data);
 
-gboolean checked(GtkObject *button, gpointer data);
+gboolean checked(GtkWidget *button, gpointer data);
 
 gboolean timeout_exit(gpointer data);
 
@@ -31,17 +31,18 @@ gboolean progress_timeout(gpointer data);
 
 gboolean tailbox_timeout(gpointer data);
 
-gboolean tailbox_keypress(GtkObject *text, GdkEventKey *event, gpointer data);
-
 gboolean logbox_timeout(gpointer data);
+
+void logbox_activated (GtkTreeView *tree_view, GtkTreePath *path,
+                             GtkTreeViewColumn *column, gpointer data);
 
 gboolean inputbox_ok(gpointer object, gpointer data);
 
-gboolean input_keypress(GtkObject *entry, GdkEventKey *event, gpointer data);
+gboolean input_keypress(GtkWidget *entry, GdkEventKey *event, gpointer data);
 
 gboolean inputbox_timeout(gpointer data);
 
-gboolean hide_passwords(GtkObject *button, gpointer data);
+gboolean hide_passwords(GtkWidget *button, gpointer data);
 
 gboolean editbox_ok(gpointer object, gpointer data);
 
@@ -55,32 +56,28 @@ gboolean spinbox_exit(GtkButton *button, gpointer data);
 
 gboolean spinbox_timeout(gpointer data);
 
-gint double_click_event(GtkObject *object, GdkEventButton *event, gpointer data);
+gint double_click_event(GtkWidget *object, GdkEventButton *event, gpointer data);
 
-void item_toggle(GtkObject *item, int i);
+void item_toggle(GtkWidget *item, int i);
 
 gboolean print_items(GtkButton *button, gpointer data);
 
 gboolean itemlist_timeout(gpointer data);
 
-void item_select(GtkObject *clist, gint row, gint column, GdkEventButton *event,
-		 gpointer data);
+void on_menubox_treeview_cursor_changed_cb (GtkTreeView *tree_view, gpointer data);
 
-gboolean print_selection(GtkButton *button, gpointer data);
+void on_menubox_treeview_row_activated_cb (GtkTreeView *tree_view, GtkTreePath *path,
+                             GtkTreeViewColumn *column, gpointer data);
 
-#ifdef USE_GTK2
-gboolean print_tree_selection(GtkButton *button, gpointer data);
-#endif
+void on_menubox_ok_click (GtkButton *button, gpointer data);
 
 gboolean menu_timeout(gpointer data);
 
-gboolean move_to_row_timeout(gpointer data);
+gboolean print_tree_selection(GtkButton *button, gpointer data);
 
-#if 0
-gboolean select_timeout(gpointer data);
-#endif
+gboolean treeview_timeout(gpointer data);
 
-void cb_selection_changed(GtkObject *tree);
+void cb_selection_changed(GtkWidget *tree);
 
 void sensitive_buttons(void);
 
@@ -92,13 +89,13 @@ gboolean print_list(GtkButton *button, gpointer data);
 
 gboolean buildlist_timeout(gpointer data);
 
-gboolean filesel_exit(GtkObject *filesel, gpointer client_data);
+gboolean filesel_exit(GtkWidget *filesel, gpointer client_data);
 
-gboolean dirsel_exit(GtkObject *filesel, gpointer client_data);
+gboolean dirsel_exit(GtkWidget *filesel, gpointer client_data);
 
-gboolean colorsel_exit(GtkObject *colorsel, gpointer client_data);
+gboolean colorsel_exit(GtkWidget *colorsel, gpointer client_data);
 
-gboolean fontsel_exit(GtkObject *filesel, gpointer client_data);
+gboolean fontsel_exit(GtkWidget *filesel, gpointer client_data);
 
 gboolean calendar_exit(gpointer object, gpointer data);
 

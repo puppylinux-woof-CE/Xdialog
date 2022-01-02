@@ -37,11 +37,7 @@
  */
 
 #ifndef FIXED_FONT
-#ifdef USE_GTK2
 #	define FIXED_FONT "mono"
-#else
-#	define FIXED_FONT "-*-*-medium-r-normal-*-*-*-*-*-m-70-*-*"
-#endif
 #endif
 
 #ifndef PRINTER_CMD
@@ -116,6 +112,15 @@
 
 #define BEEP_BEFORE 1
 #define BEEP_AFTER  2
+
+typedef enum
+{
+	LOGBOX_COL_DATE,
+	LOGBOX_COL_TEXT,
+	LOGBOX_COL_BGCOLOR,
+	LOGBOX_COL_FGCOLOR,
+	LOGBOX_NUM_COLS
+} LOGBOX_COL;
 
 /* Structure definitions. */
 
@@ -193,6 +198,7 @@ typedef struct	{
 	char		rc_file[MAX_FILENAME_LENGTH];
 	char		printer[MAX_PRTNAME_LENGTH];
 	int		exit_code;
+	gdouble		progress_step; /* --progress */
 	listname *	array;
 } Xdialog_data;
 
@@ -233,7 +239,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size);
 
 void create_filesel(gchar *optarg, gboolean dsel_flag);
 
-void create_colorsel(gchar *optarg, gdouble *colors);
+void create_colorsel(gchar *optarg, const GdkColor *colors);
 
 void create_fontsel(gchar *optarg);
 

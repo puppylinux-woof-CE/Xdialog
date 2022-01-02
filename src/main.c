@@ -258,9 +258,7 @@ static void print_help_info(char *name, char *errmsg)
 {
 	gchar msg[HELP_MSG_SIZE];
 	gchar cmd[32];
-#ifdef USE_GTK2
 	GtkTextBuffer *text_buffer;
-#endif
 
 	strcpy(cmd, strlen(name) < 32 ? name : XDIALOG);
 
@@ -292,13 +290,10 @@ static void print_help_info(char *name, char *errmsg)
 	Xdialog.size_in_pixels = FALSE;
 	get_maxsize(&Xdialog.xsize, &Xdialog.ysize);
 	create_textbox("", FALSE);
-#ifdef USE_GTK2
+
 	text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Xdialog.widget1));
 	gtk_text_buffer_insert_at_cursor(text_buffer, msg, strlen(msg));
-#else
-	gtk_text_insert(GTK_TEXT(Xdialog.widget1), NULL, NULL, NULL, msg,
-			strlen(msg));
-#endif
+
 	gtk_widget_show(Xdialog.window);
 	gtk_main();
 
@@ -537,7 +532,7 @@ int main(int argc, char *argv[])
 	gint min = 0, max = 0, deflt =0;
 	gint day = 0, month = 0, year = 0;
 	gint hours = 0, minutes = 0, seconds = 0;
-	gdouble colors[4];
+	GdkColor colors;
 	gint beep_tmp, timeout_tmp;
 	gboolean icon_tmp, check_tmp;
 	time_t curr_time;
@@ -709,7 +704,6 @@ int main(int argc, char *argv[])
 	    (gtk_major_version == 1 && gtk_minor_version < 2))
 		fprintf(stderr,
 			"%s: GTK+ version too old, please upgrade !\n", argv[0]);
-	gtk_set_locale();
 
 	/* Set custom log handler routines, so that GTK, GDK and GLIB never
          * print anything on stdout, but always use stderr instead.
@@ -958,13 +952,14 @@ show_again:
 				if (list_size != 0) {
 					if (list_size != 3)
 						print_help_info(argv[0], "incorrect number of parameters");
-					colors[0] = atoi(argv[optind++]) / 255.0;
-                                        colors[1] = atoi(argv[optind++]) / 255.0;
-                                        colors[2] = atoi(argv[optind++]) / 255.0;
-                                }  else {
-					colors[0] = colors[1] = colors[2] = 1.0;
+
+					colors.red = atoi(argv[optind++])  * 257;
+					colors.green = atoi(argv[optind++]) * 257;
+					colors.blue = atoi(argv[optind++]) * 257;
+                } else {
+					colors.red = colors.green = colors.blue = 65535;
 				}
-				create_colorsel(optarg, colors);
+				create_colorsel(optarg, &colors);
 				win = TRUE;
 				break;
 			case B_FONTSEL:		/* font selector */

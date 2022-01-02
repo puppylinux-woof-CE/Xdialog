@@ -17,4 +17,4 @@ Xdialog_SOURCES = \
 	support.c support.h
 
 LDADD = @LIBINTL@
-Xdialog_LDADD = $(LDADD) @GTK_LIBS@ -L../lib -lgetopt
+Xdialog_LDADD = $(LDADD) @GTK_LIBS@ @PangoFT2_LIBS@ -L../lib -lgetopt
