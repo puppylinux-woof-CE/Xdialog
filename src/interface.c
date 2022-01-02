@@ -750,11 +750,7 @@ void create_gauge(gchar *optarg, gint percent)
 
 	set_backtitle(TRUE);
 	Xdialog.widget2 = set_label(optarg, TRUE);
-#if defined(USE_GTK3)
-	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#else
 	hbox = gtk_hbox_new (FALSE, 0);
-#endif
 	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 10);
 	gtk_widget_show(hbox);
 
@@ -800,11 +796,7 @@ void create_progress(gchar *optarg, gint leading, gint maxdots)
 
 	trim_string(optarg, Xdialog.label_text, MAX_LABEL_LENGTH);
 	label = set_label(Xdialog.label_text, TRUE);
-#if defined(USE_GTK3)
-	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#else
 	hbox = gtk_hbox_new (FALSE, 0);
-#endif
 	gtk_box_pack_start (Xdialog.vbox, hbox, FALSE, TRUE, 10);
 	gtk_widget_show(hbox);
 
@@ -1430,11 +1422,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	}
 
 	/* Setup a hbox to hold the scrolled windows and the Add/Remove buttons */
-#if defined(USE_GTK3)
-	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#else
 	hbox = gtk_hbox_new(FALSE, 0);
-#endif
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(Xdialog.vbox, hbox, TRUE, TRUE, ymult/3);
 
@@ -1443,11 +1431,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	g_object_unref(G_OBJECT(tree_list1));
 
 	/* Setup the Add/Remove buttons */
-#if defined(USE_GTK3)
-	vbuttonbox = gtk_button_box_new (GTK_ORIENTATION_VERTICAL);
-#else
 	vbuttonbox = gtk_vbutton_box_new();
-#endif
 	gtk_widget_show(vbuttonbox);
 	gtk_box_pack_start(GTK_BOX(hbox), vbuttonbox, FALSE, TRUE, 10);
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(vbuttonbox), GTK_BUTTONBOX_SPREAD);
