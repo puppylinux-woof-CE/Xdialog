@@ -113,6 +113,15 @@
 #define BEEP_BEFORE 1
 #define BEEP_AFTER  2
 
+typedef enum
+{
+	LOGBOX_COL_DATE,
+	LOGBOX_COL_TEXT,
+	LOGBOX_COL_BGCOLOR,
+	LOGBOX_COL_FGCOLOR,
+	LOGBOX_NUM_COLS
+} LOGBOX_COL;
+
 /* Structure definitions. */
 
 typedef struct {

@@ -35,6 +35,9 @@ gboolean tailbox_keypress(GtkWidget *text, GdkEventKey *event, gpointer data);
 
 gboolean logbox_timeout(gpointer data);
 
+void logbox_activated (GtkTreeView *tree_view, GtkTreePath *path,
+                             GtkTreeViewColumn *column, gpointer data);
+
 gboolean inputbox_ok(gpointer object, gpointer data);
 
 gboolean input_keypress(GtkWidget *entry, GdkEventKey *event, gpointer data);
