@@ -1121,24 +1121,37 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, TRUE);
 
-	combo = gtk_combo_box_entry_new_text(); 
+#if GTK_CHECK_VERSION (2, 24, 0)
+	combo = gtk_combo_box_text_new_with_entry ();
+#else
+ 	combo = gtk_combo_box_entry_new_text(); 
+#endif
 	Xdialog.widget1 = GTK_WIDGET(gtk_bin_get_child (GTK_BIN (combo)));
 	Xdialog.widget2 = Xdialog.widget3 = NULL;
-	gtk_box_pack_start(Xdialog.vbox, combo, TRUE, TRUE, 0);
+	gtk_box_pack_start(Xdialog.vbox, combo, TRUE, TRUE, 10);
 	gtk_widget_grab_focus(Xdialog.widget1);
 	gtk_widget_show(combo);
 
 	/* Set the popdown strings */
-	for (i = 0; i < list_size; i++)
-		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), options[i]);
+	for (i = 0; i < list_size; i++) {
+#if GTK_CHECK_VERSION (2, 24, 0)
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(combo), options[i]);
+#else
+		gtk_combo_box_append_text (GTK_COMBO_BOX(combo), options[i]);
+#endif
+	}
 
 	if (strlen(Xdialog.default_item) != 0)
 	{
-		gtk_combo_box_prepend_text(GTK_COMBO_BOX(combo), Xdialog.default_item);
+#if GTK_CHECK_VERSION (2, 24, 0)
+		gtk_combo_box_text_prepend_text (GTK_COMBO_BOX_TEXT(combo), Xdialog.default_item);
+#else
+ 		gtk_combo_box_prepend_text(GTK_COMBO_BOX(combo), Xdialog.default_item);
+#endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
 	}
 
-	gtk_entry_set_editable(GTK_ENTRY(Xdialog.widget1), Xdialog.editable);
+	gtk_editable_set_editable(GTK_EDITABLE(Xdialog.widget1), Xdialog.editable);
 
 	if (Xdialog.buttons) {
 		button_ok = set_all_buttons(FALSE, TRUE);
