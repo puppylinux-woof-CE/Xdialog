@@ -624,6 +624,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+PangoFT2_LIBS
+PangoFT2_CFLAGS
 GTK_LIBS
 GTK_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -771,7 +773,9 @@ CPPFLAGS
 CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
-PKG_CONFIG_LIBDIR'
+PKG_CONFIG_LIBDIR
+PangoFT2_CFLAGS
+PangoFT2_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1431,6 +1435,10 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  PangoFT2_CFLAGS
+              C compiler flags for PangoFT2, overriding pkg-config
+  PangoFT2_LIBS
+              linker flags for PangoFT2, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -8509,6 +8517,77 @@ rm -f core conftest.err conftest.$ac_objext \
 
   rm -f conf.gtktest
 
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PangoFT2" >&5
+$as_echo_n "checking for PangoFT2... " >&6; }
+
+if test -n "$PangoFT2_CFLAGS"; then
+    pkg_cv_PangoFT2_CFLAGS="$PangoFT2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangoft2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "pangoft2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PangoFT2_CFLAGS=`$PKG_CONFIG --cflags "pangoft2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$PangoFT2_LIBS"; then
+    pkg_cv_PangoFT2_LIBS="$PangoFT2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangoft2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "pangoft2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PangoFT2_LIBS=`$PKG_CONFIG --libs "pangoft2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        PangoFT2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "pangoft2" 2>&1`
+        else
+	        PangoFT2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "pangoft2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$PangoFT2_PKG_ERRORS" >&5
+
+	as_fn_error $? "Cannot find PangoFT2." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	as_fn_error $? "Cannot find PangoFT2." "$LINENO" 5
+else
+	PangoFT2_CFLAGS=$pkg_cv_PangoFT2_CFLAGS
+	PangoFT2_LIBS=$pkg_cv_PangoFT2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
 elif test "$compile_for" = "gtk2" ; then
   # Check whether --enable-gtktest was given.
 if test "${enable_gtktest+set}" = set; then :
@@ -8837,6 +8916,77 @@ rm -f core conftest.err conftest.$ac_objext \
 
   rm -f conf.gtktest
 
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PangoFT2" >&5
+$as_echo_n "checking for PangoFT2... " >&6; }
+
+if test -n "$PangoFT2_CFLAGS"; then
+    pkg_cv_PangoFT2_CFLAGS="$PangoFT2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangoft2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "pangoft2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PangoFT2_CFLAGS=`$PKG_CONFIG --cflags "pangoft2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$PangoFT2_LIBS"; then
+    pkg_cv_PangoFT2_LIBS="$PangoFT2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangoft2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "pangoft2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PangoFT2_LIBS=`$PKG_CONFIG --libs "pangoft2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        PangoFT2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "pangoft2" 2>&1`
+        else
+	        PangoFT2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "pangoft2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$PangoFT2_PKG_ERRORS" >&5
+
+	as_fn_error $? "Cannot find PangoFT2." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	as_fn_error $? "Cannot find PangoFT2." "$LINENO" 5
+else
+	PangoFT2_CFLAGS=$pkg_cv_PangoFT2_CFLAGS
+	PangoFT2_LIBS=$pkg_cv_PangoFT2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
 else
   as_fn_error $? "GTK1 no longer supported" "$LINENO" 5
 fi

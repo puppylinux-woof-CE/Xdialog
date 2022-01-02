@@ -45,9 +45,13 @@ AC_ARG_WITH(gtk2,
 if test "$compile_for" = "gtk3" ; then
   AM_PATH_GTK_3_0(3.22.0, ,
             AC_MSG_ERROR(Cannot find GTK3.))
+  PKG_CHECK_MODULES([PangoFT2], [pangoft2], ,
+            AC_MSG_ERROR(Cannot find PangoFT2.))
 elif test "$compile_for" = "gtk2" ; then
   AM_PATH_GTK_2_0(2.2.0, ,
             AC_MSG_ERROR(Cannot find GTK2.))
+  PKG_CHECK_MODULES([PangoFT2], [pangoft2], ,
+            AC_MSG_ERROR(Cannot find PangoFT2.))
 else
 dnl  AM_PATH_GTK(1.2.0, ,
 dnl           AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?))
