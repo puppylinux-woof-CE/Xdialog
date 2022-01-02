@@ -588,12 +588,12 @@ static GtkWidget *set_scrolled_list(GtkWidget *box, gint xsize, gint list_size,
 }
 
 
-static GtkObject *set_horizontal_slider(GtkBox *box, gint deflt, gint min, gint max)
+static GtkWidget *set_horizontal_slider(GtkBox *box, gint deflt, gint min, gint max)
 {
 	GtkWidget *align;
 	GtkAdjustment *adj;
 	GtkWidget *hscale;
-	GtkObject *slider;
+	GtkWidget *slider;
 
 	align = gtk_alignment_new(0.5, 0.5, 0.8, 0);
 	gtk_box_pack_start(box, align, FALSE, FALSE, 5);

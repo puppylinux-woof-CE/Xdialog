@@ -110,7 +110,7 @@ gboolean exit_cancel(gpointer object, gpointer data)
 
 gint exit_keypress(gpointer object, GdkEventKey *event, gpointer data)
 {
-	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Escape)) {
+	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_KEY_Escape)) {
 		return exit_cancel(object, data);
 	}
 	return TRUE;
@@ -613,8 +613,8 @@ gboolean inputbox_timeout(gpointer data)
 
 gint input_keypress(GtkWidget *entry, GdkEventKey *event, gpointer data)
 {
-	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Return ||
-					     event->keyval == GDK_KP_Enter)) {
+	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_KEY_Return ||
+					     event->keyval == GDK_KEY_KP_Enter)) {
 		if (Xdialog.default_no) {
 			Xdialog.exit_code = 1;
 		} else {
@@ -1050,11 +1050,11 @@ gboolean dirsel_exit(GtkWidget *filesel, gpointer client_data)
 /* colorsel callback */
 gboolean colorsel_exit(GtkWidget *colorsel, gpointer client_data)
 {
-	gdouble colors[4];
+	GdkColor colors;
 
-	gtk_color_selection_get_color(GTK_COLOR_SELECTION(client_data), colors);
+	gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(client_data), &colors);
 	fprintf(Xdialog.output, "%d %d %d\n",
-                (int) (255.0 * colors[0]), (int) (255.0 * colors[1]), (int) (255.0 * colors[2]));
+                (colors.red >> 8), (colors.green >> 8), (colors.blue >> 8));
 	return exit_ok(NULL, NULL);
 }
 
