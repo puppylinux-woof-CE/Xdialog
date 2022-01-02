@@ -379,22 +379,6 @@ gboolean tailbox_timeout(gpointer data)
 	return TRUE;
 }
 
-gboolean
-tailbox_keypress(GtkWidget *text, GdkEventKey *event,
-		      gpointer data)
-{
-	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Return ||
-					     event->keyval == GDK_KP_Enter)) {
-		if (Xdialog.default_no)
-			Xdialog.exit_code = 1;
-		else
-			Xdialog.exit_code = 0;
-
-		return(FALSE);
-	}
-	return(TRUE);
-}
-
 #ifdef HAVE_STRSTR
 
 static void vt_to_gdk_color(gint color, GdkColor **fgcolor, GdkColor **bgcolor)

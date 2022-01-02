@@ -853,10 +853,10 @@ void create_tailbox(gchar *optarg)
 	set_backtitle(FALSE);
 
 	Xdialog.widget1 = set_scrollable_text();
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(Xdialog.widget1), FALSE); // tailbox is not editable
+	
 	gtk_widget_set_size_request(Xdialog.widget1, 40*xmult, 15*ymult);
 	gtk_widget_grab_focus(Xdialog.widget1);
-	g_signal_connect(GTK_WIDGET(Xdialog.widget1), "key_press_event",
-			   G_CALLBACK(tailbox_keypress), NULL);
 
 	if (strcmp(optarg, "-") == 0)
 		Xdialog.file = stdin;

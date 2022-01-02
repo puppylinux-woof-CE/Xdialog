@@ -31,8 +31,6 @@ gboolean progress_timeout(gpointer data);
 
 gboolean tailbox_timeout(gpointer data);
 
-gboolean tailbox_keypress(GtkWidget *text, GdkEventKey *event, gpointer data);
-
 gboolean logbox_timeout(gpointer data);
 
 void logbox_activated (GtkTreeView *tree_view, GtkTreePath *path,
