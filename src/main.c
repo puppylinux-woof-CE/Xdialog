@@ -40,9 +40,12 @@ gboolean dialog_compat = FALSE;
 /* Usage displaying */
 
 #define HELP_TEXT1 \
-"Xdialog v"VERSION" by Thierry Godefroy <xdialog@free.fr> (v1.0 was\n\
-written by Alfred at Cyberone Internet <alfred@cyberone.com.au>).\n\
-Xdialog home page available at: http://xdialog.dyns.net/\n\
+"Xdialog v"VERSION" by jamesbond3142 \n\
+v1.1.0 - v2.3.1 was written Thierry Godefroy <xdialog@free.fr>\n\
+v1.0 was written by Alfred at Cyberone Internet <alfred@cyberone.com.au>).\n\
+Xdialog home page available at: \n\
+http://xdialog.free.fr/\n\
+http://chiselapp.com/user/jamesbond/repository/xdialog/index\n\
 \n\
 Usage: "
 
