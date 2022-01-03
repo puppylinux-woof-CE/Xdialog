@@ -482,6 +482,7 @@ gboolean logbox_timeout(gpointer data)
 	struct tm *localdate = NULL;
 	time_t curr_time;
 	gboolean frozen = FALSE;
+	gboolean valid_iter = FALSE;
 
 	if (!Xdialog.smooth && (Xdialog.file_init_size > 0))
 		frozen = TRUE;
@@ -553,6 +554,7 @@ gboolean logbox_timeout(gpointer data)
 		}
 
 		gtk_list_store_set (store, &iter, LOGBOX_COL_TEXT, buffer, -1);
+		valid_iter = TRUE;
 
 		if (Xdialog.time_stamp)
 		{
@@ -566,10 +568,25 @@ gboolean logbox_timeout(gpointer data)
 			gtk_list_store_set (store, &iter, LOGBOX_COL_DATE, buffer, -1);
 		}
 
+		// scroll to the last line - do it for every line added if --smooth
+		if (Xdialog.smooth) {
+			GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_view_set_cursor(tree, path, NULL, FALSE);
+			gtk_tree_path_free(path);
+		}
+
 		if (!empty_gtk_queue()) {
 			return FALSE;
 		}
 	}
+
+	// scroll to the last line - do it when we're done prorcessing, if not  --smooth
+	if (!Xdialog.smooth && valid_iter) {
+		GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_view_set_cursor(tree, path, NULL, FALSE);
+		gtk_tree_path_free(path);
+	}
+
 	return TRUE;
 }
 

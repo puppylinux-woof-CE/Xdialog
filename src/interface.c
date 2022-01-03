@@ -598,7 +598,7 @@ static GtkWidget *set_horizontal_slider(GtkBox *box, gint deflt, gint min, gint 
 	gtk_widget_show(align);
 
 	/* Create an adjusment object to hold the range of the scale */
-	slider = gtk_adjustment_new(deflt, min, max, 1, 1, 0);
+	slider = GTK_WIDGET (gtk_adjustment_new(deflt, min, max, 1, 1, 0));
 	adj = GTK_ADJUSTMENT(slider);
  	hscale = gtk_hscale_new(adj);
 	gtk_scale_set_digits(GTK_SCALE(hscale), 0);
@@ -1790,8 +1790,6 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 	GtkColorSelectionDialog *colorsel;
 	GtkWidget *box;
 	GtkWidget *hbuttonbox;
-	GtkWidget *button;
-	gboolean flag;
 
 	font_init();
 
@@ -1800,7 +1798,7 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 	/* Create a color selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_color_selection_dialog_new(Xdialog.title);
 	colorsel = GTK_COLOR_SELECTION_DIALOG(Xdialog.window);
-	Xdialog.vbox = gtk_dialog_get_content_area (GTK_DIALOG(colorsel));
+	Xdialog.vbox = GTK_WIDGET (gtk_dialog_get_content_area (GTK_DIALOG(colorsel)) );
 
 	/* We must realize the widget before moving it and creating the icon and
            buttons pixmaps...

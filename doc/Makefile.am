@@ -10,6 +10,8 @@ doc_DATA = index.html compatibility.html changelog.html license.html $(srcdir)/*
 
 man_MANS = Xdialog.1
 
+INSTALL = install -C
+
 index.html: index.html.in
 	sed -e 's/%%version%%/$(VERSION)/' $(srcdir)/index.html.in >index.html
 
