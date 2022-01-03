@@ -1798,7 +1798,7 @@ void create_colorsel(gchar *optarg, const GdkColor *colors)
 	/* Create a color selector and update Xdialog structure accordingly */
 	Xdialog.window = gtk_color_selection_dialog_new(Xdialog.title);
 	colorsel = GTK_COLOR_SELECTION_DIALOG(Xdialog.window);
-	Xdialog.vbox = GTK_WIDGET (gtk_dialog_get_content_area (GTK_DIALOG(colorsel)) );
+	Xdialog.vbox = GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG(colorsel)) );
 
 	/* We must realize the widget before moving it and creating the icon and
            buttons pixmaps...
