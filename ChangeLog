@@ -3,6 +3,8 @@
                   versions, drop GTK+ 2 deprecated APIs, use GTK+ 2 accessors
                   instead of direct structure access, and add support for
                   GTK+ 3 compilation (jamesbond3142).
+                - Make tailbox and logbox non-blocking, so it can be used
+                  with pipes without blocking the entire UI.
                 - Before this, there are many patches/features added back to
                   GTK+ 2 version to make it comparable in features to GTK+ 1
                   version (e.g. --fixed-font, etc) by various people

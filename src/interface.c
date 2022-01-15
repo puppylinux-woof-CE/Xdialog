@@ -13,6 +13,7 @@
 #endif
 #ifdef HAVE_UNISTD_H
 #	include <unistd.h>
+#	include <fcntl.h>
 #endif
 #include <sys/stat.h>
 
@@ -853,6 +854,12 @@ void create_tailbox(gchar *optarg)
 	else
 		Xdialog.file = fopen(optarg, "r");
 
+	// make handle non-blocking
+	int fd = fileno(Xdialog.file);  
+	int flags = fcntl(fd, F_GETFL, 0); 
+	flags |= O_NONBLOCK; 
+	fcntl(fd, F_SETFL, flags);
+
 	if (Xdialog.file == NULL) {
 		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
 		exit(255);
@@ -970,6 +977,12 @@ void create_logbox(gchar *optarg)
 		Xdialog.file = stdin;
 	else
 		Xdialog.file = fopen(optarg, "r");
+
+	// make handle non-blocking
+	int fd = fileno(Xdialog.file);  
+	int flags = fcntl(fd, F_GETFL, 0); 
+	flags |= O_NONBLOCK; 
+	fcntl(fd, F_SETFL, flags);
 
 	if (Xdialog.file == NULL) {
 		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
