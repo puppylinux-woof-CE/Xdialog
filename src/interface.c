@@ -561,7 +561,9 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 	gtk_box_pack_start(box, scrolled_window, TRUE, TRUE, 0);
 	gtk_widget_show(scrolled_window);
 
-	if (list_size) list_size++; // fudge - to accomodate scrollbar
+	list_size++; // fudge - to accomodate scrollbar
+	//fprintf(stderr, "list_size %d\n", list_size);
+	//fprintf(stderr, "list_height %d\n", Xdialog.list_height);
 	if (Xdialog.list_height > 0)
 		gtk_widget_set_size_request(scrolled_window, xsize > 0 ? xsize*xmult : -1,
 				     Xdialog.list_height * (ymult + spacing));
@@ -989,7 +991,8 @@ void create_logbox(gchar *optarg)
 	gtk_widget_show(Xdialog.widget1);
 	gtk_widget_grab_focus(Xdialog.widget1);
 
-	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, xsize, 12, 2);
+	// minimum to show is 60 or 80 chars x 12 lines (we put 11 to compensate for fudge)
+	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, xsize, 11, 2);
 	gtk_container_add(GTK_CONTAINER(scrolled_window), Xdialog.widget1);
 
 	// input source
@@ -1360,7 +1363,8 @@ void create_itemlist(gchar *optarg, gint type, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, FALSE);
 
-	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, -1, list_size, ymult + 5);
+	// minimum is list_height or list_size
+	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, -1, list_size, 4);
 
 	vbox = gtk_vbox_new(FALSE, xmult);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), xmult);
@@ -1463,6 +1467,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 	gtk_box_pack_start(Xdialog.vbox, hbox, TRUE, TRUE, ymult/3);
 
 	/* Setup the first list into a scrolled window */
+	// minimum is list_height or list_size	
 	Xdialog.widget1 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list1);
 	g_object_unref(G_OBJECT(tree_list1));
 
@@ -1480,6 +1485,7 @@ void create_buildlist(gchar *optarg, gchar *options[], gint list_size)
 			   G_CALLBACK(remove_from_list), NULL);
 
 	/* Setup the second list into a scrolled window */
+	// minimum is list_height or list_size
 	Xdialog.widget2 = set_scrolled_list(hbox, MAX(15, n), list_size, 4, tree_list2);
 	g_object_unref(G_OBJECT(tree_list2));
 
@@ -1521,6 +1527,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, FALSE);
 
+	// minimum is list_height or list_size
 	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, -1, list_size, 4);
 
 	store = gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
@@ -1688,6 +1695,7 @@ void create_treeview(gchar *optarg, gchar *options[], gint list_size)
 	}     
 
 	/* Create the tree view in a scrolled window */
+	// minimum is list_height or list_size
 	scrolled_window = set_scrolled_window(Xdialog.vbox, xmult/2, -1, list_size, 4);
 
 	Xdialog.widget1 = gtk_tree_view_new_with_model(GTK_TREE_MODEL (store));
