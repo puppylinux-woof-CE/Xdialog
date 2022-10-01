@@ -1,3 +1,8 @@
+01/10/22
+                - Make XDIALOG_HIGH_COMPAT_DIALOG work again
+                - add size option for fixed-font
+                - correct and fudge factor for dialog sizing using "chars" and "lines"
+                - don't autosize tailbox and textbox unless no size is given
 03/01/21
         v2.3.2  - Drop GTK+ 1 support, migrate all widgets to their GTK+ 2
                   versions, drop GTK+ 2 deprecated APIs, use GTK+ 2 accessors

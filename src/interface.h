@@ -39,6 +39,9 @@
 #ifndef FIXED_FONT
 #	define FIXED_FONT "mono"
 #endif
+#ifndef DEFAULT_FIXED_FONT_SIZE
+#	define DEFAULT_FIXED_FONT_SIZE 12 /* in points */
+#endif
 
 #ifndef PRINTER_CMD
 #define PRINTER_CMD "lpr" 		/* Command to be used IOT print text */
@@ -101,7 +104,7 @@
 
 #define ALPHANUM_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
-#define FIXED_FONT_RC_STRING "style 'fixed_font' { font = \"" FIXED_FONT "\" }\nwidget '*' style 'fixed_font'"
+#define FIXED_FONT_RC_STRING "style 'fixed_font' { font_name = \"" FIXED_FONT " %d\" }\nwidget '*' style 'fixed_font'"
 
 #define ICON_AND_TEXT -1
 #define ICON_ONLY 0
@@ -164,6 +167,7 @@ typedef struct	{
 	gboolean	wrap;					/* TRUE if label text is to be auto-wrapped */
 	gboolean	cr_wrap;				/* TRUE to wrap at linefeeds */
 	gboolean	fixed_font;				/* TRUE if fixed font to be used in text */
+	gint        fixed_font_size;        /* the fixed font size (int points). Implies fixed_font = TRUE */
 	gboolean	tags;					/* TRUE if tags to be displayed in menu/list */
 	gboolean	buttons;				/* FALSE to prevent setting up buttons */
 	gboolean	ok_button;				/* FALSE to prevent setting up OK button in tailbox/logbox */

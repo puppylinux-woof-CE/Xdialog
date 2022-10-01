@@ -67,7 +67,7 @@ Common options:\n\
   --buttons-style default|icon|text\n\
 \n\
 Transient options:\n\
-  --fixed-font\n\
+  --fixed-font [<font-size>]\n\
   --password (may be repeated 2 or 3 times before --2inputsbox or --3inputsbox)\n\
   --password=1|2 (for --2inputsbox or --3inputsbox)\n\
   --editable\n\
@@ -598,7 +598,7 @@ int main(int argc, char *argv[])
                 {"separator",		1, 0, C_SEPARATOR},
                 {"separate-output",	0, 0, C_SEPARATEOUTPUT},
 		/* Transient options */
-                {"fixed-font",		0, 0, T_FIXEDFONT},
+                {"fixed-font",		2, 0, T_FIXEDFONT},
                 {"password",		2, 0, T_PASSWORD},
                 {"editable",		0, 0, T_EDITABLE},
                 {"time-stamp",		0, 0, T_TIMESTAMP},
@@ -1102,6 +1102,9 @@ show_again:
 		/* Transient options */
 			case T_FIXEDFONT:	/* --fixed-font option */
 				Xdialog.fixed_font = TRUE;
+				if (optarg != NULL) {
+					Xdialog.fixed_font_size = atoi(optarg);
+				}
 				break;
 			case T_PASSWORD:	/* --passwd option */
 				if (optarg == NULL) {

@@ -33,7 +33,11 @@ extern gboolean dialog_compat;
 /* Fixed font loading and character size (in pixels) initialisation */
 static PangoFontDescription *fixed_font;
 
-// these default values are overriden
+/* These "multipliers" hold the number of x/y pixels per character,
+ * for default font and fixed font.
+ * XSIZE_MULT and YSIZE_MULT are just placeholder values leftover from
+ * days of old; they're not actually used anymore.
+*/
 static gint xmult = XSIZE_MULT;
 static gint ymult = YSIZE_MULT;
 static gint ffxmult = XSIZE_MULT;
@@ -43,10 +47,20 @@ static gint ffymult = YSIZE_MULT;
 
 static void parse_rc_file(void)
 {
+	gchar *rc_str = NULL;
+	
 	if (strlen(Xdialog.rc_file) != 0)
 		gtk_rc_parse(Xdialog.rc_file);
-	if (dialog_compat)
-		gtk_rc_parse_string(FIXED_FONT_RC_STRING);
+		
+	if (dialog_compat) {
+		rc_str = g_strdup_printf(FIXED_FONT_RC_STRING,
+			(Xdialog.fixed_font_size ? Xdialog.fixed_font_size : DEFAULT_FIXED_FONT_SIZE)
+		);
+		if (rc_str) {
+			gtk_rc_parse_string(rc_str);
+			g_free(rc_str);
+		}
+	}
 }
 
 /* font_init() is used for two purposes: load the fixed font that Xdialog may
@@ -60,8 +74,8 @@ static void get_font_metrics(GtkWidget *window, PangoFontDescription *font, gint
 	PangoFontMap *fm = pango_ft2_font_map_new();
 	PangoFont *pfont = pango_font_map_load_font (fm, pc, font);
 	PangoFontMetrics *metrics = pango_font_get_metrics (pfont, NULL);
-	*xmult = pango_font_metrics_get_approximate_char_width(metrics);
-	*ymult = pango_font_metrics_get_ascent (metrics)*2 + pango_font_metrics_get_descent (metrics);
+	*xmult = pango_font_metrics_get_approximate_char_width(metrics) * 1.5; // fudge
+	*ymult = (pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics)*2) * 1.5; // fudge
 	*xmult /= PANGO_SCALE;
 	*ymult /= PANGO_SCALE;
 	if (metrics) pango_font_metrics_unref(metrics);
@@ -78,7 +92,8 @@ static void font_init(void)
 	fixed_font = pango_font_description_new ();
 	pango_font_description_set_family (fixed_font, FIXED_FONT);
 	pango_font_description_set_weight (fixed_font, PANGO_WEIGHT_MEDIUM);
-	pango_font_description_set_size (fixed_font, XSIZE_MULT*PANGO_SCALE);
+	pango_font_description_set_size (fixed_font,
+		(Xdialog.fixed_font_size ? Xdialog.fixed_font_size : DEFAULT_FIXED_FONT_SIZE)*PANGO_SCALE);
 
 	/* We must open and realize a window IOT get the GTK+ theme font... */
 	parse_rc_file();
@@ -100,7 +115,7 @@ static void font_init(void)
 		}
 	}
 	gtk_widget_destroy(window);
-	//g_print("%d %d\n",xmult,ymult);
+	//fprintf(stderr,"xmult %d ymult %d\n",xmult,ymult);
 }
 
 /* Custom text wrapping (the GTK+ one is buggy) */
@@ -546,6 +561,7 @@ static GtkWidget *set_scrolled_window(GtkBox *box, gint border_width, gint xsize
 	gtk_box_pack_start(box, scrolled_window, TRUE, TRUE, 0);
 	gtk_widget_show(scrolled_window);
 
+	if (list_size) list_size++; // fudge - to accomodate scrollbar
 	if (Xdialog.list_height > 0)
 		gtk_widget_set_size_request(scrolled_window, xsize > 0 ? xsize*xmult : -1,
 				     Xdialog.list_height * (ymult + spacing));
@@ -846,8 +862,11 @@ void create_tailbox(gchar *optarg)
 
 	Xdialog.widget1 = set_scrollable_text();
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(Xdialog.widget1), FALSE); // tailbox is not editable
-	
-	gtk_widget_set_size_request(Xdialog.widget1, 40*xmult, 15*ymult);
+
+	// only request minimum size if size is not specified
+	if (Xdialog.xsize == 0 && Xdialog.ysize == 0) 
+		gtk_widget_set_size_request(Xdialog.widget1, 40*xmult, 15*ymult);
+
 	gtk_widget_grab_focus(Xdialog.widget1);
 
 	if (strcmp(optarg, "-") == 0)
@@ -1058,16 +1077,19 @@ void create_textbox(gchar *optarg, gboolean editable)
 	}
 
 	llen += 4;
-	
-	if (Xdialog.fixed_font)
-		gtk_widget_set_size_request(Xdialog.widget1,
-				     MIN(llen*ffxmult, gdk_screen_width()-4*ffxmult),
-				     MIN(lcnt*ffymult, gdk_screen_height()-10*ffymult));
-	else
-		gtk_widget_set_size_request(Xdialog.widget1,
-				     MIN(llen*xmult, gdk_screen_width()-4*xmult),
-				     MIN(lcnt*ymult, gdk_screen_height()-10*ymult));
 
+	// only request minimum size if size is not specified
+	if (Xdialog.xsize == 0 && Xdialog.ysize == 0) {
+		if (Xdialog.fixed_font)
+			gtk_widget_set_size_request(Xdialog.widget1,
+						 MIN(llen*ffxmult, gdk_screen_width()-4*ffxmult),
+						 MIN(lcnt*ffymult, gdk_screen_height()-10*ffymult));
+		else
+			gtk_widget_set_size_request(Xdialog.widget1,
+						 MIN(llen*xmult, gdk_screen_width()-4*xmult),
+						 MIN(lcnt*ymult, gdk_screen_height()-10*ymult));
+	}
+	
 	/* Set the editable flag depending on what we want (text or edit box) */
 	gtk_text_view_set_editable(text, editable);
 
