@@ -33,6 +33,7 @@ extern gboolean dialog_compat;
 /* Fixed font loading and character size (in pixels) initialisation */
 static PangoFontDescription *fixed_font;
 
+// these default values are overriden
 static gint xmult = XSIZE_MULT;
 static gint ymult = YSIZE_MULT;
 static gint ffxmult = XSIZE_MULT;
@@ -60,7 +61,7 @@ static void get_font_metrics(GtkWidget *window, PangoFontDescription *font, gint
 	PangoFont *pfont = pango_font_map_load_font (fm, pc, font);
 	PangoFontMetrics *metrics = pango_font_get_metrics (pfont, NULL);
 	*xmult = pango_font_metrics_get_approximate_char_width(metrics);
-	*ymult = pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics) + 2;
+	*ymult = pango_font_metrics_get_ascent (metrics)*2 + pango_font_metrics_get_descent (metrics);
 	*xmult /= PANGO_SCALE;
 	*ymult /= PANGO_SCALE;
 	if (metrics) pango_font_metrics_unref(metrics);
@@ -77,7 +78,7 @@ static void font_init(void)
 	fixed_font = pango_font_description_new ();
 	pango_font_description_set_family (fixed_font, FIXED_FONT);
 	pango_font_description_set_weight (fixed_font, PANGO_WEIGHT_MEDIUM);
-	pango_font_description_set_size (fixed_font, 10*PANGO_SCALE);
+	pango_font_description_set_size (fixed_font, XSIZE_MULT*PANGO_SCALE);
 
 	/* We must open and realize a window IOT get the GTK+ theme font... */
 	parse_rc_file();
