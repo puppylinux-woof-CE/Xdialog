@@ -75,7 +75,7 @@ static void get_font_metrics(GtkWidget *window, PangoFontDescription *font, gint
 	PangoFont *pfont = pango_font_map_load_font (fm, pc, font);
 	PangoFontMetrics *metrics = pango_font_get_metrics (pfont, NULL);
 	*xmult = pango_font_metrics_get_approximate_char_width(metrics) * 1.5; // fudge
-	*ymult = (pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics)*2) * 1.5; // fudge
+	*ymult = (pango_font_metrics_get_ascent (metrics) + pango_font_metrics_get_descent (metrics)*2) * 1.25; // fudge
 	*xmult /= PANGO_SCALE;
 	*ymult /= PANGO_SCALE;
 	if (metrics) pango_font_metrics_unref(metrics);
