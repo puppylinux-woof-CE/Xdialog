@@ -1,8 +1,15 @@
+28/06/23
+        v2.3.3  - Fix logbox/tailbox not refreshing with newer glibc
+
+23/04/22        - Specifying window-origin now works
+                - Workaround gtk3 label bug to wrap text in labels
+
 01/10/22
                 - Make XDIALOG_HIGH_COMPAT_DIALOG work again
                 - add size option for fixed-font
                 - correct and fudge factor for dialog sizing using "chars" and "lines"
                 - don't autosize tailbox and textbox unless no size is given
+
 03/01/21
         v2.3.2  - Drop GTK+ 1 support, migrate all widgets to their GTK+ 2
                   versions, drop GTK+ 2 deprecated APIs, use GTK+ 2 accessors
@@ -14,6 +21,7 @@
                   GTK+ 2 version to make it comparable in features to GTK+ 1
                   version (e.g. --fixed-font, etc) by various people
                   (amigo, 01micko, etc).
+
 18/08/06
         v2.3.1  - Fixed the bug, introduced in v2.3.0, where the "Hide typing"
                   check button always appeared in the input boxes, regardless

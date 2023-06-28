@@ -160,6 +160,18 @@ static void wrap_text(gchar *str, gint reserved_width)
 
 static void set_window_size_and_placement(void)
 {
+
+#ifdef USE_GTK3
+	// workaround for GTK3 - make behaviour consistent with GTK2 version of Xdialog
+	if (Xdialog.justify == GTK_JUSTIFY_FILL) {
+		if (Xdialog.xsize == 0 || Xdialog.ysize == 0) {
+			Xdialog.xsize = gdk_screen_width()/4;
+			Xdialog.ysize = gdk_screen_height()/4;
+			Xdialog.size_in_pixels = TRUE;
+		}
+	}
+#endif
+
 	if (Xdialog.xsize != 0 && Xdialog.ysize != 0) {
 		if (Xdialog.size_in_pixels)
 			gtk_window_set_default_size(GTK_WINDOW(Xdialog.window),
@@ -176,7 +188,7 @@ static void set_window_size_and_placement(void)
 
 	/* Set the window placement policy */
 	if (Xdialog.set_origin)
-		gdk_window_move(gtk_widget_get_window(Xdialog.window),
+		gtk_window_move(Xdialog.window,
 				Xdialog.xorg >= 0 ? (Xdialog.size_in_pixels ? Xdialog.xorg : Xdialog.xorg*xmult) :
 						    gdk_screen_width()  + Xdialog.xorg - Xdialog.xsize - 2*xmult,
 				Xdialog.yorg >= 0 ? (Xdialog.size_in_pixels ? Xdialog.yorg : Xdialog.yorg*ymult) :
@@ -303,6 +315,14 @@ static GtkWidget *set_label(gchar *label_text, gboolean expand)
 	}
 
 	trim_string(label_text, text, MAX_LABEL_LENGTH);
+
+#ifdef USE_GTK3
+	// workaround for GTK3 bug - gtk_label_set_line_wrap does not work properly
+	if (Xdialog.justify == GTK_JUSTIFY_FILL) {
+		Xdialog.justify = GTK_JUSTIFY_LEFT;  // don't use line wrap
+		Xdialog.wrap = TRUE;                 // wrap it ourself
+	}
+#endif
 
 	if (Xdialog.wrap || dialog_compat)
 		wrap_text(text, icon_width + 2*ymult/3);
@@ -876,16 +896,16 @@ void create_tailbox(gchar *optarg)
 	else
 		Xdialog.file = fopen(optarg, "r");
 
+	if (Xdialog.file == NULL) {
+		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
+		exit(255);
+	}
+
 	// make handle non-blocking
 	int fd = fileno(Xdialog.file);  
 	int flags = fcntl(fd, F_GETFL, 0); 
 	flags |= O_NONBLOCK; 
 	fcntl(fd, F_SETFL, flags);
-
-	if (Xdialog.file == NULL) {
-		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
-		exit(255);
-	}
 
 	if (Xdialog.file != stdin) {
 		if (fseek(Xdialog.file, 0, SEEK_END) == 0) {
@@ -893,11 +913,6 @@ void create_tailbox(gchar *optarg)
 			fseek(Xdialog.file, 0, SEEK_SET);
 		} else
 			Xdialog.file_init_size = 0;
-	}
-
-	if (Xdialog.file == NULL) {
-		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
-		exit(255);
 	}
 
 	if (dialog_compat)
@@ -1001,16 +1016,16 @@ void create_logbox(gchar *optarg)
 	else
 		Xdialog.file = fopen(optarg, "r");
 
+	if (Xdialog.file == NULL) {
+		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
+		exit(255);
+	}
+
 	// make handle non-blocking
 	int fd = fileno(Xdialog.file);  
 	int flags = fcntl(fd, F_GETFL, 0); 
 	flags |= O_NONBLOCK; 
 	fcntl(fd, F_SETFL, flags);
-
-	if (Xdialog.file == NULL) {
-		fprintf(stderr, "Xdialog: can't open %s\n", optarg);
-		exit(255);
-	}
 
 	if (Xdialog.file != stdin) {
 		if (fseek(Xdialog.file, 0, SEEK_END) == 0) {

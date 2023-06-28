@@ -2222,7 +2222,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 PACKAGE=Xdialog
-VERSION=2.3.2
+VERSION=2.3.3
 cat >>confdefs.h <<_ACEOF
 #define PACKAGE "$PACKAGE"
 _ACEOF

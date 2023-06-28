@@ -354,6 +354,7 @@ gboolean tailbox_timeout(gpointer data)
 		if (!empty_gtk_queue() && (Xdialog.file_init_size <= 0))
 			return FALSE;
 
+		clearerr(Xdialog.file); // reset EOF, otherwise fread will always fail on newer glibc
 		nchars = fread(buffer, sizeof(gchar), 1024, Xdialog.file);
 		if (nchars == 0)
 			break;
