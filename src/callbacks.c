@@ -492,6 +492,7 @@ gboolean logbox_timeout(gpointer data)
 			return FALSE;
 	}
 
+	clearerr(Xdialog.file); // reset EOF, otherwise fgets will always fail on newer glibc
 	while (fgets(buffer, MAX_LABEL_LENGTH, Xdialog.file) != NULL) {
 
 		len = strlen(buffer);
