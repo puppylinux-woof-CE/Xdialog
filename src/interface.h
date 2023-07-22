@@ -105,6 +105,7 @@
 #define ALPHANUM_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 #define FIXED_FONT_RC_STRING "style 'fixed_font' { font_name = \"" FIXED_FONT " %d\" }\nwidget '*' style 'fixed_font'"
+#define FIXED_FONT_CSS_STRING "* { font: %dpt \"" FIXED_FONT "\"}"
 
 #define ICON_AND_TEXT -1
 #define ICON_ONLY 0
