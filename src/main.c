@@ -39,7 +39,13 @@ gboolean dialog_compat = FALSE;
 
 /* Usage displaying */
 
-#define HELP_TEXT1 \
+#ifndef USE_GTK3
+#define HELP_RC_FILE "rc-file <gtkrc filename>"
+#else
+#define HELP_RC_FILE "style-file <gtkstyle css filename>"
+#endif
+
+#define HELP_TEXT \
 "Xdialog v"VERSION" by jamesbond3142 \n\
 v1.1.0 - v2.3.1 was written Thierry Godefroy <xdialog@free.fr>\n\
 v1.0 was written by Alfred at Cyberone Internet <alfred@cyberone.com.au>).\n\
@@ -47,15 +53,12 @@ Xdialog home page available at: \n\
 http://xdialog.free.fr/\n\
 http://chiselapp.com/user/jamesbond/repository/xdialog/index\n\
 \n\
-Usage: "
-
-#define HELP_TEXT2 \
-" [<common options>] [<transient options>] <box option> ...\n\
+Usage: %s [<common options>] [<transient options>] <box option> ...\n\
 \n\
 Common options:\n\
   --feature-check\n\
   --wmclass <name>\n\
-  --rc-file <gtkrc or gtkcss filename>\n\
+  --%s\n\
   --backtitle <backtitle>\n\
   --title <title>\n\
   --allow-close | --no-close\n\
@@ -144,23 +147,20 @@ will maximize it.\n\
 \n\
 (1) This Xdialog binary compiled with: "PRINTER_CMD" "PRINTER_CMD_OPTION"<printer>\n\
     as the print command. If <printer> is \"\" (an empty string), the "PRINTER_CMD_OPTION"\n\
-    option is not used.\n\n"
+    option is not used.\n\n\
+%s"
 
 #ifdef USE_SCANF
 
-#define HELP_TEXT3 \
+#define HELP_USE_SCANF \
 "WARNING: This binary of Xdialog was compiled with the --with-scanf-calls configure\n\
 option. The --infobox and --gauge widgets may therefore not work completely as\n\
 expected (lack of refresh of the GTK+ menu while scanning the input stream).\n\
 You may try to re-compile Xdialog without specifying this configure option (but\n\
 then, your system C library may lack the necessary functions).\n\n"
 
-#define HELP_MSG_SIZE 4600
-
 #else
-
-#define HELP_MSG_SIZE 4200
-
+#define HELP_USE_SCANF ""
 #endif
 
 /* List of all recognized Xdialog options */
@@ -218,9 +218,9 @@ enum {
 	C_ALLOWCLOSE,
 	C_BUTTONSSTYLE,
 	C_RCFILE,
+	C_STYLEFILE,
 	C_SEPARATOR,
 	C_SEPARATEOUTPUT,
-	C_FEATURE_CHECK,
 	/* Transient options */
 	T_FIXEDFONT,
 	T_PASSWORD,
@@ -256,33 +256,22 @@ enum {
 	S_PRINTMAXSIZE,
 	S_VERSION,
 	S_PRINTVERSION,
-	S_CLEAR
+	S_CLEAR,
+	S_FEATURE_CHECK
 };
 
 static void print_help_info(char *name, char *errmsg)
 {
-	gchar msg[HELP_MSG_SIZE];
-	gchar cmd[32];
+	char *msg;
 	GtkTextBuffer *text_buffer;
 
-	strcpy(cmd, strlen(name) < 32 ? name : XDIALOG);
+	asprintf(&msg, HELP_TEXT, name, HELP_RC_FILE, HELP_USE_SCANF);
 
-	strcpysafe(msg, HELP_TEXT1, HELP_MSG_SIZE);
-	strcatsafe(msg, cmd, HELP_MSG_SIZE);
-	strcatsafe(msg, HELP_TEXT2, HELP_MSG_SIZE);
-#ifdef USE_SCANF
-	strcatsafe(msg, HELP_TEXT3, HELP_MSG_SIZE);
-#endif
-
-	fprintf(stderr, "%s: %s !\n", cmd, errmsg);
+	fprintf(stderr, "%s: %s !\n\n", name, errmsg);
 	fprintf(stderr, msg);
 
-	if (strlen(msg) == HELP_MSG_SIZE-1)
-		fprintf(stderr, "\n\nHelp message truncated, please re-compile "\
-				"after increasing HELP_MSG_SIZE in main.c !\n");
-
 	strcpysafe(Xdialog.title, "Usage for ", MAX_TITLE_LENGTH);
-	strcatsafe(Xdialog.title, cmd, MAX_TITLE_LENGTH);
+	strcatsafe(Xdialog.title, name, MAX_TITLE_LENGTH);
 	Xdialog.cancel_button = Xdialog.help = Xdialog.icon = Xdialog.check = Xdialog.extra_button = FALSE;
 	if (!Xdialog.print) {
 		Xdialog.print = TRUE;
@@ -302,6 +291,7 @@ static void print_help_info(char *name, char *errmsg)
 	gtk_widget_show(Xdialog.window);
 	gtk_main();
 
+	free(msg);
 	exit(255);
 }
 
@@ -597,9 +587,9 @@ int main(int argc, char *argv[])
                 {"allow-close",		0, 0, C_ALLOWCLOSE},
                 {"buttons-style",	1, 0, C_BUTTONSSTYLE},
                 {"rc-file",		1, 0, C_RCFILE},
+                {"style-file",		1, 0, C_STYLEFILE},
                 {"separator",		1, 0, C_SEPARATOR},
                 {"separate-output",	0, 0, C_SEPARATEOUTPUT},
-                {"feature-check",	0, 0, C_FEATURE_CHECK},
 		/* Transient options */
                 {"fixed-font",		2, 0, T_FIXEDFONT},
                 {"password",		2, 0, T_PASSWORD},
@@ -635,6 +625,7 @@ int main(int argc, char *argv[])
                 {"version",		0, 0, S_VERSION},
                 {"print-version",	0, 0, S_PRINTVERSION},
                 {"clear",		0, 0, S_CLEAR},
+                {"feature-check",	0, 0, S_FEATURE_CHECK},                
 		/* Nomius patch for extra button */
                 {"extra-button",		0, 0, T_EXTRA},
                 {"extra-label",	1, 0, T_EXTRALABEL},
@@ -1089,7 +1080,11 @@ show_again:
 				else
 					print_help_info(argv[0], "bad button style name");
 				break;
+#ifndef USE_GTK3
 			case C_RCFILE:		/* --rc-file option */
+#else
+			case C_STYLEFILE:	/* --style-file option */
+#endif
 				strcpysafe(Xdialog.rc_file, optarg,
 					   MAX_FILENAME_LENGTH);
 				break;
@@ -1101,14 +1096,6 @@ show_again:
 				break;
 			case C_SEPARATEOUTPUT:	/* --separate-output option */
 				Xdialog.separator[0] = '\n';
-				break;
-			case C_FEATURE_CHECK:
-#ifndef USE_GTK3
-				g_print(VERSION " GTK2 GTKRC\n");
-#else
-				g_print(VERSION " GTK3 GTKCSS\n");
-#endif
-				exit(0);
 				break;
 		/* Transient options */
 			case T_FIXEDFONT:	/* --fixed-font option */
@@ -1256,6 +1243,14 @@ show_again:
 			case S_CLEAR:		/* --clear option (cdialog compatibility trick) */
 				win = TRUE;	/* don't complain about a missing box option */
 				continue;	/* don't try to open a window, skip to next option */
+			case S_FEATURE_CHECK:
+#ifndef USE_GTK3
+				g_print(VERSION " GTK2 RC_FILE\n");
+#else
+				g_print(VERSION " GTK3 STYLE_FILE\n");
+#endif
+				exit(0);
+				break;
 		}
 		if (win) {
 			gtk_widget_show(Xdialog.window);
