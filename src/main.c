@@ -53,8 +53,9 @@ Usage: "
 " [<common options>] [<transient options>] <box option> ...\n\
 \n\
 Common options:\n\
+  --feature-check\n\
   --wmclass <name>\n\
-  --rc-file <gtkrc filename>\n\
+  --rc-file <gtkrc or gtkcss filename>\n\
   --backtitle <backtitle>\n\
   --title <title>\n\
   --allow-close | --no-close\n\
@@ -219,6 +220,7 @@ enum {
 	C_RCFILE,
 	C_SEPARATOR,
 	C_SEPARATEOUTPUT,
+	C_FEATURE_CHECK,
 	/* Transient options */
 	T_FIXEDFONT,
 	T_PASSWORD,
@@ -597,6 +599,7 @@ int main(int argc, char *argv[])
                 {"rc-file",		1, 0, C_RCFILE},
                 {"separator",		1, 0, C_SEPARATOR},
                 {"separate-output",	0, 0, C_SEPARATEOUTPUT},
+                {"feature-check",	0, 0, C_FEATURE_CHECK},
 		/* Transient options */
                 {"fixed-font",		2, 0, T_FIXEDFONT},
                 {"password",		2, 0, T_PASSWORD},
@@ -1098,6 +1101,14 @@ show_again:
 				break;
 			case C_SEPARATEOUTPUT:	/* --separate-output option */
 				Xdialog.separator[0] = '\n';
+				break;
+			case C_FEATURE_CHECK:
+#ifndef USE_GTK3
+				g_print(VERSION " GTK2 GTKRC\n");
+#else
+				g_print(VERSION " GTK3 GTKCSS\n");
+#endif
+				exit(0);
 				break;
 		/* Transient options */
 			case T_FIXEDFONT:	/* --fixed-font option */

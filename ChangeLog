@@ -1,3 +1,11 @@
+22/07/23
+        v2.3.4  - Add support for --rc-file in GTK3, using GTKCSS
+                - Add --feature-check to for forward compatibility.
+                  It shows compiled-in features, separated by spaces. 
+                  Currently it shows Xdialog, version and which GTK version
+                  Xdialog was built with, as well as whether --rc-file
+                  supports GTKRC or GTKCSS.
+
 28/06/23
         v2.3.3  - Fix logbox/tailbox not refreshing with newer glibc
 
