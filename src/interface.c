@@ -221,6 +221,13 @@ static void set_window_size_and_placement(void)
 						    Xdialog.xsize*xmult,
 						    Xdialog.ysize*ymult);
 	}
+#ifdef USE_GTK3
+	else
+	{
+		// GTK3 does not auto-shrink, so we do it ourselvs, to simulate GTK2 behaviour
+		gtk_window_set_default_size(GTK_WINDOW(Xdialog.window), 1, 1);
+	}		
+#endif
 
 	/* Allow the window to grow, shrink and auto-shrink */
 	gtk_window_set_resizable(GTK_WINDOW(Xdialog.window), TRUE);
