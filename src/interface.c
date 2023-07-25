@@ -1579,6 +1579,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	
 	int i;
 	int params = 2 + Xdialog.tips;
+	int default_item = 0;
 
 	Xdialog_array(list_size);
 	Xdialog.array[0].state = -1;
@@ -1651,6 +1652,9 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 	for (i = 0; i < list_size; i++) {
 		strcpysafe(Xdialog.array[i].tag, options[params*i], MAX_ITEM_LENGTH);
 		strcpysafe(Xdialog.array[i].name, options[params*i+1], MAX_ITEM_LENGTH);
+		
+		if (*Xdialog.default_item && !strcmp(Xdialog.default_item, Xdialog.array[i].tag))
+			default_item = i;
 
 		gtk_list_store_append (store, &iter);
 		gtk_list_store_set (store, &iter,
@@ -1662,7 +1666,7 @@ void create_menubox(gchar *optarg, gchar *options[], gint list_size)
 
 	}
 
-	GtkTreePath  *tpath = gtk_tree_path_new_from_indices (0, -1);
+	GtkTreePath  *tpath = gtk_tree_path_new_from_indices (default_item, -1);
 	gtk_tree_selection_select_path (tree_sel, tpath);
 	gtk_tree_path_free (tpath);
 
