@@ -20,6 +20,7 @@
 <li> <a href="#VERSION">--version</a>
 <li> <a href="#VERSION">--print-version</a>
 <li> <a href="#MAXSIZE">--print-maxsize</a>
+<li> <a href="#FEATURE">--feature-check</a>
 </ul>
 </pre>
 <hr>
@@ -42,6 +43,14 @@ $ _
 MaxSize: 62, 144
 $ _
 </pre>
+<p><li><a name="FEATURE"><b>--feature-check</b></a>
+<p align="justify">This option makes Xdialog print the features it that it supports. The version number is printed first, then every feature printed as a word, separated by spaces. This option is meant for scripts so that they can adapt themselves based on the (optional) features supported by different versions or builds of Xdialog. For example, it allows scripts to detect if the Xdialog is compiled with GTK+ 2 or GTK+ 3 support, and whether it supports <b>--rc-file</b> or <b>--style-file</b>. This feature is only available from version 2.3.4 onwards. 
+<p>Example:
+<pre>$ Xdialog --feature-check
+2.3.4 GTK3 STYLE_FILE
+$ _
+</pre>
+<p align="justify">The example above shows that Xdialog is of version 2.3.4, and that it has been built with GTK+ 3, and it supports the <b>--style-file</b> instead of <b>--rc-file</b>.
 </ul>
 <hr>
 <table border=0 width="100%"><tr>

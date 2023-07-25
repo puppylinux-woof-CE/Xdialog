@@ -18,6 +18,7 @@
 <pre><ul>
 <li> <a href="#WMCLASS">--wmclass</a> &lt;name&gt;
 <li> <a href="#RCFILE">--rc-file</a> &lt;gtkrc filename&gt;
+<li> <a href="#STYLEFILE">--style-file</a> &lt;gtkstyle css filename&gt;
 <li> <a href="#BACKTITLE">--backtitle</a> &lt;backtitle&gt;
 <li> <a href="#TITLE">--title</a> &lt;title&gt;
 <li> <a href="#CLOSE">--allow-close</a> | <a href="#CLOSE">--no-close</a>
@@ -51,6 +52,7 @@ bluebox.rc file contents:
 Using the bluebox.rc file:
 <pre>
         Xdialog --rc-file bluebox.rc --msgbox "--rc-file demonstration." 0 0</pre>
+<p align="justify">This option is only available Xdialog built with GTK+ 2. It does not exist and is not supported in GTK+ 3 version of Xdialog, although specifying it is harmless. For the GTK+ 3 version of Xdialog, please use <b>--style-file</b> below.
 </td>
 <td width=10>&nbsp;</td>
 <td align="left" valign="top" width=200>
@@ -64,6 +66,8 @@ Result:
 <tr>
 <td align="left" valign="top" width=580>
 <ul>
+<p><li><a name="STYLEFILE"><b>--style-file</b></a> &lt;gtkstyle css filename&gt;
+<p align="justify">This option functions identically to the <b>--rc-file</b> option above, except that you need to specify a GtkStyle CSS instead of an gtkrc file. This option is only available if Xdialog is compiled with GTK+ 3. Specifying this option on an Xdialog compiled for GTK+ 2 is harmless and will not do anything. This option is only available from Xdialog version 2.3.4 onwards.
 <p><li><a name="BACKTITLE"><b>--backtitle</b></a> &lt;backtitle&gt;
 <p align="justify">In (c)dialog, this option is used to print a title on the screen (terminal) background of the dialog boxes, thus the name... As it is not very friendly nor even desirable to print text on the X11 screen background (AKA &quot;root window&quot;), Xdialog uses this option to print a title <b>into</b> its widgets, at the top of them (horizontally centered). The default is no backtitle and you may restore this default after using <b>--backtitle</b> once into a chained dialog command line, by passing an empty string to the next <b>--backtitle</b> option as parameter. When the widget accepts a <a href="box.html#TEXT">&lt;text&gt;</a> parameter and when the backtitle is not an empty string, Xdialog automatically adds an horizontal line as a separator between the backtitle and the text. As for the <a href="box.html#TEXT">&lt;text&gt;</a> parameter, the &lt;backtitle&gt; parameter may contain &quot;\n&quot; (line feeds) characters. This option applies to all widgets.
 <p><li><a name="TITLE"><b>--title</b></a> &lt;title&gt;
