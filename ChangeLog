@@ -1,3 +1,8 @@
+26/07/23
+        v2.3.5  - Add support for --default-item, which has been missing
+                  since we dropped GTK+ 1 support and migrated to GTK+ 2.
+                - Update documentation for --style-file and --feature-check.
+
 22/07/23
         v2.3.4  - Add support for --style-file in GTK3, using GtkStyle CSS
                 - Add --feature-check to for forward compatibility.
