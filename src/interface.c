@@ -1257,11 +1257,7 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 	set_backtitle(TRUE);
 	set_label(optarg, TRUE);
 
-#if GTK_CHECK_VERSION (2, 24, 0)
 	combo = gtk_combo_box_text_new_with_entry ();
-#else
- 	combo = gtk_combo_box_entry_new_text(); 
-#endif
 	Xdialog.widget1 = GTK_WIDGET(gtk_bin_get_child (GTK_BIN (combo)));
 	Xdialog.widget2 = Xdialog.widget3 = NULL;
 	gtk_box_pack_start(Xdialog.vbox, combo, TRUE, TRUE, 10);
@@ -1270,20 +1266,12 @@ void create_combobox(gchar *optarg, gchar *options[], gint list_size)
 
 	/* Set the popdown strings */
 	for (i = 0; i < list_size; i++) {
-#if GTK_CHECK_VERSION (2, 24, 0)
 		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(combo), options[i]);
-#else
-		gtk_combo_box_append_text (GTK_COMBO_BOX(combo), options[i]);
-#endif
 	}
 
 	if (strlen(Xdialog.default_item) != 0)
 	{
-#if GTK_CHECK_VERSION (2, 24, 0)
 		gtk_combo_box_text_prepend_text (GTK_COMBO_BOX_TEXT(combo), Xdialog.default_item);
-#else
- 		gtk_combo_box_prepend_text(GTK_COMBO_BOX(combo), Xdialog.default_item);
-#endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
 	}
 
