@@ -76,7 +76,7 @@ static void parse_rc_file(void)
 		if (gtk_css_provider_load_from_file (provider, file, NULL)) {
 			gtk_style_context_add_provider_for_screen(
 				gdk_screen_get_default(),
-				provider,
+				GTK_STYLE_PROVIDER(provider),
 				GTK_STYLE_PROVIDER_PRIORITY_USER
 			);
 		}
@@ -92,7 +92,7 @@ static void parse_rc_file(void)
 		if (gtk_css_provider_load_from_data (provider, rc_str, -1, NULL)) {
 			gtk_style_context_add_provider_for_screen(
 				gdk_screen_get_default(),
-				provider,
+				GTK_STYLE_PROVIDER(provider),
 				GTK_STYLE_PROVIDER_PRIORITY_USER
 			);
 		}
